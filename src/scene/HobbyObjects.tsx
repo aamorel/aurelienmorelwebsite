@@ -12,15 +12,7 @@ import {
 import type { Hobby } from '../content'
 import type { Point } from './config'
 
-const colors = {
-  brass: '#ba945b',
-  brassDark: '#8c6b38',
-  cream: '#eee8d8',
-  sage: '#8f9f7b',
-  green: '#52664a',
-  dark: '#354238',
-  clay: '#bd7952',
-}
+import { palette as colors } from './palette'
 
 function Tube({
   points,
@@ -70,6 +62,7 @@ function Saxophone() {
     <group rotation={[0.05, -0.25, -0.12]} position={[-0.08, -0.1, 0]} scale={0.95}>
       <Tube
         radius={0.079}
+        color={colors.paint}
         points={[
           [-0.31, 0.83, 0],
           [-0.13, 0.8, 0],
@@ -86,19 +79,19 @@ function Saxophone() {
         <mesh>
           <latheGeometry args={[bell, 40]} />
           <meshStandardMaterial
-            color={colors.brass}
-            metalness={0.48}
-            roughness={0.36}
+            color={colors.paint}
+            metalness={0.12}
+            roughness={0.6}
             side={DoubleSide}
           />
         </mesh>
         <mesh position={[0, 0.35, 0]} rotation={[Math.PI / 2, 0, 0]}>
           <torusGeometry args={[0.253, 0.012, 8, 40]} />
-          <meshStandardMaterial color="#d6ba7b" metalness={0.55} roughness={0.3} />
+          <meshStandardMaterial color={colors.brass} metalness={0.55} roughness={0.3} />
         </mesh>
         <mesh position={[0, 0.03, 0]} rotation={[-Math.PI / 2, 0, 0]}>
           <circleGeometry args={[0.07, 24]} />
-          <meshStandardMaterial color={colors.brassDark} />
+          <meshStandardMaterial color={colors.sage} />
         </mesh>
       </group>
       <RoundedBox
@@ -112,7 +105,7 @@ function Saxophone() {
       </RoundedBox>
       <Tube
         radius={0.014}
-        color={colors.brassDark}
+        color={colors.sage}
         points={[
           [0.015, -0.23, 0.075],
           [0.03, 0.16, 0.075],
@@ -164,20 +157,20 @@ function Basketball() {
     <group rotation={[0.15, -0.25, -0.22]}>
       <mesh>
         <sphereGeometry args={[0.56, 48, 32]} />
-        <meshStandardMaterial color={colors.clay} roughness={0.92} />
+        <meshStandardMaterial color={colors.paint} roughness={0.92} />
       </mesh>
       {[0, Math.PI / 2].map((angle) => (
         <mesh rotation={[0, angle, 0]} key={angle}>
           <torusGeometry args={[0.56, 0.009, 8, 64]} />
-          <meshStandardMaterial color="#654733" roughness={0.9} />
+          <meshStandardMaterial color={colors.green} roughness={0.9} />
         </mesh>
       ))}
       <mesh rotation={[Math.PI / 2, 0, 0]}>
         <torusGeometry args={[0.56, 0.009, 8, 64]} />
-        <meshStandardMaterial color="#654733" roughness={0.9} />
+        <meshStandardMaterial color={colors.green} roughness={0.9} />
       </mesh>
       {seams.map((points, i) => (
-        <Tube key={i} points={points} radius={0.008} color="#654733" closed />
+        <Tube key={i} points={points} radius={0.008} color={colors.green} closed />
       ))}
     </group>
   )
@@ -225,12 +218,14 @@ function Volleyball() {
     <group rotation={[0.42, -0.45, -0.3]}>
       <mesh>
         <sphereGeometry args={[0.557, 40, 28]} />
-        <meshStandardMaterial color="#9c9d89" roughness={0.9} />
+        <meshStandardMaterial color={colors.sage} roughness={0.9} />
       </mesh>
       {panels.map((geometry, i) => (
         <mesh key={i} geometry={geometry}>
           <meshStandardMaterial
-            color={i % 3 === 1 ? (Math.floor(i / 3) % 2 ? colors.sage : '#c6b68d') : colors.cream}
+            color={
+              i % 3 === 1 ? (Math.floor(i / 3) % 2 ? colors.sage : colors.paint) : colors.cream
+            }
             roughness={0.84}
           />
         </mesh>
@@ -327,7 +322,7 @@ function RunningShoe() {
         <meshStandardMaterial color={colors.cream} roughness={0.95} />
       </RoundedBox>
       <RoundedBox args={[1.35, 0.045, 0.56]} radius={0.02} smoothness={3} position={[0, -0.335, 0]}>
-        <meshStandardMaterial color={colors.brassDark} roughness={1} />
+        <meshStandardMaterial color={colors.sage} roughness={1} />
       </RoundedBox>
       <mesh position={[0, 0, -0.22]}>
         <extrudeGeometry
@@ -343,7 +338,7 @@ function RunningShoe() {
             },
           ]}
         />
-        <meshStandardMaterial color={colors.sage} roughness={0.9} />
+        <meshStandardMaterial color={colors.paint} roughness={0.9} />
       </mesh>
       <mesh position={[-0.45, 0.19, 0]} rotation={[-Math.PI / 2, 0.25, 0]} scale={[1, 1.6, 1]}>
         <circleGeometry args={[0.1, 24]} />

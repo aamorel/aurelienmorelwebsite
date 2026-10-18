@@ -8,13 +8,14 @@ import type { Mode } from '../useNavigation'
 import RobotArm from './RobotArm'
 import type { ArmPhase, BehaviorRequest } from './motion'
 import { TARGETS } from './config'
+import { palette } from './palette'
 import { useSelectionAnimation, type SelectionProps } from './useSelectionAnimation'
 
 const wood = new MeshStandardMaterial({ color: '#c99e70', roughness: 0.85 })
-const paper = new MeshStandardMaterial({ color: '#f3eedb', roughness: 0.95 })
-const sage = new MeshStandardMaterial({ color: '#829673', roughness: 0.8 })
-const graphite = new MeshStandardMaterial({ color: '#3e493c', roughness: 0.65, metalness: 0.15 })
-const orange = new MeshStandardMaterial({ color: '#bc7854', roughness: 0.6 })
+const paper = new MeshStandardMaterial({ color: palette.paper, roughness: 0.95 })
+const sage = new MeshStandardMaterial({ color: palette.sage, roughness: 0.8 })
+const graphite = new MeshStandardMaterial({ color: palette.dark, roughness: 0.65, metalness: 0.15 })
+const orange = new MeshStandardMaterial({ color: palette.clay, roughness: 0.6 })
 
 type Props = {
   selected: Section | null

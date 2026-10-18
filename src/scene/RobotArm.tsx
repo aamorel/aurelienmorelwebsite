@@ -7,13 +7,14 @@ import { ArmMotion, type ArmPhase, type BehaviorRequest } from './motion'
 import { CUBE_SIZE } from './cubeRoutine'
 import { TRACK_HEIGHT } from './trackRoutine'
 import DanceConfetti from './DanceConfetti'
+import { palette } from './palette'
 import type { Section } from '../content'
 import type { Mode } from '../useNavigation'
 
-const paint = new MeshStandardMaterial({ color: '#bdc8a9', roughness: 0.6, metalness: 0.12 })
-const cream = new MeshStandardMaterial({ color: '#e4e4d1', roughness: 0.48, metalness: 0.08 })
-const joint = new MeshStandardMaterial({ color: '#39443b', roughness: 0.5, metalness: 0.3 })
-const brass = new MeshStandardMaterial({ color: '#b28c5e', roughness: 0.42, metalness: 0.55 })
+const paint = new MeshStandardMaterial({ color: palette.paint, roughness: 0.6, metalness: 0.12 })
+const cream = new MeshStandardMaterial({ color: palette.cream, roughness: 0.48, metalness: 0.08 })
+const joint = new MeshStandardMaterial({ color: palette.joint, roughness: 0.5, metalness: 0.3 })
+const brass = new MeshStandardMaterial({ color: palette.brass, roughness: 0.42, metalness: 0.55 })
 
 function Joint({ radius = 0.21 }: { radius?: number }) {
   return (
