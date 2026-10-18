@@ -3,7 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { RoundedBox } from '@react-three/drei'
 import { Group, MeshStandardMaterial } from 'three'
 import { ARM, type Pose } from './config'
-import { ArmMotion, type ArmPhase } from './motion'
+import { ArmMotion, type ArmPhase, type BehaviorRequest } from './motion'
 import { CUBE_SIZE } from './cubeRoutine'
 import type { Section } from '../content'
 import type { Mode } from '../useNavigation'
@@ -70,7 +70,7 @@ type Props = {
   mode: Mode
   revision: number
   motionEnabled: boolean
-  spawnRevision: number
+  behaviorRequest: BehaviorRequest | null
   onPhaseChange: (phase: ArmPhase) => void
 }
 
@@ -79,7 +79,7 @@ export default function RobotArm({
   mode,
   revision,
   motionEnabled,
-  spawnRevision,
+  behaviorRequest,
   onPhaseChange,
 }: Props) {
   const yaw = useRef<Group>(null!)
@@ -91,7 +91,7 @@ export default function RobotArm({
   const right = useRef<Group>(null!)
   const cube = useRef<Group>(null!)
   const lastPhase = useRef<ArmPhase>('idle')
-  const lastSpawn = useRef(spawnRevision)
+  const lastBehavior = useRef(behaviorRequest)
   const motion = useRef<ArmMotion | null>(null)
   if (!motion.current) motion.current = new ArmMotion()
   const invalidate = useThree((state) => state.invalidate)
@@ -125,14 +125,14 @@ export default function RobotArm({
   }, [selected, revision, mode, motionEnabled, invalidate, onPhaseChange])
 
   useEffect(() => {
-    if (lastSpawn.current === spawnRevision) return
-    lastSpawn.current = spawnRevision
-    motion.current!.spawnCube()
+    if (!behaviorRequest || lastBehavior.current === behaviorRequest) return
+    lastBehavior.current = behaviorRequest
+    motion.current!.startBehavior(behaviorRequest.kind)
     apply(motion.current!.pose)
     // A navigation or pause can supersede a click before this effect runs.
     onPhaseChange(motion.current!.phase)
     invalidate()
-  }, [spawnRevision, invalidate, onPhaseChange])
+  }, [behaviorRequest, invalidate, onPhaseChange])
 
   useEffect(() => () => onPhaseChange('idle'), [onPhaseChange])
 

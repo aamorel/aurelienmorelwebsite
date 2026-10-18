@@ -6,7 +6,7 @@ import { sections, type Section } from '../content'
 import { ArrowIcon, CheckIcon } from '../Icons'
 import type { Mode } from '../useNavigation'
 import RobotArm from './RobotArm'
-import type { ArmPhase } from './motion'
+import type { ArmPhase, BehaviorRequest } from './motion'
 import { TARGETS } from './config'
 import { useSelectionAnimation, type SelectionProps } from './useSelectionAnimation'
 
@@ -27,7 +27,7 @@ type Props = {
   active: boolean
   onReady: () => void
   onFailure: () => void
-  spawnRevision: number
+  behaviorRequest: BehaviorRequest | null
   onPhaseChange: (phase: ArmPhase) => void
 }
 
@@ -470,7 +470,7 @@ export default function WorkbenchScene(props: Props) {
         mode={props.mode}
         revision={props.revision}
         motionEnabled={props.motionEnabled}
-        spawnRevision={props.spawnRevision}
+        behaviorRequest={props.behaviorRequest}
         onPhaseChange={props.onPhaseChange}
       />
       <DeskObject id="education" props={props}>

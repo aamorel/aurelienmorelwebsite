@@ -2,8 +2,11 @@ import type { Section } from '../content'
 import type { Mode } from '../useNavigation'
 import { IDLE_POSES, SAFE, TARGETS, WELCOME, blendPose, type Pose } from './config'
 import { CUBE_SPOTS, CubeRoutine, type CubeState } from './cubeRoutine'
+import { DanceRoutine } from './danceRoutine'
 
-export type ArmPhase = 'idle' | 'reaching' | 'returning' | 'playing'
+export type ArmPhase = 'idle' | 'reaching' | 'returning' | 'playing' | 'dancing'
+export type IdleBehavior = 'cube' | 'dance'
+export type BehaviorRequest = { kind: IdleBehavior; revision: number }
 type Step = { to: Pose; duration: number; phase: ArmPhase }
 type Request = { selected: Section | null; revision: number; mode: Mode; motionEnabled: boolean }
 
@@ -19,7 +22,7 @@ export class ArmMotion {
   private elapsed = 0
   private idleTime = 0
   private idleIndex = 0
-  private routine: CubeRoutine | null = null
+  private routine: CubeRoutine | DanceRoutine | null = null
   private playTime = 0
   private nextPlay = 0
   private lastSpot = -1
@@ -30,17 +33,21 @@ export class ArmMotion {
     this.nextPlay = 9 + random() * 5
   }
 
-  spawnCube(): boolean {
+  startBehavior(kind: IdleBehavior): boolean {
     if (!this.request?.motionEnabled || this.phase !== 'idle' || this.request.mode === 'reaching')
       return false
-    // Choose a different spot each time, for both spontaneous and manual play.
-    const choices = CUBE_SPOTS.map((_, index) => index).filter((index) => index !== this.lastSpot)
-    this.lastSpot = choices[Math.floor(this.random() * choices.length)]
+    if (kind === 'cube') {
+      // Choose a different spot each time, for both spontaneous and manual play.
+      const choices = CUBE_SPOTS.map((_, index) => index).filter((index) => index !== this.lastSpot)
+      this.lastSpot = choices[Math.floor(this.random() * choices.length)]
+      this.routine = new CubeRoutine(this.pose, CUBE_SPOTS[this.lastSpot])
+    } else {
+      this.routine = new DanceRoutine(this.pose)
+    }
     this.steps = []
     this.elapsed = 0
-    this.routine = new CubeRoutine(this.pose, CUBE_SPOTS[this.lastSpot])
     this.cube = this.routine.cube
-    this.phase = 'playing'
+    this.phase = kind === 'cube' ? 'playing' : 'dancing'
     return true
   }
 
@@ -116,7 +123,7 @@ export class ArmMotion {
     if (this.phase === 'idle' && this.request.mode !== 'reaching') {
       this.playTime += delta
       if (this.playTime >= this.nextPlay) {
-        this.spawnCube()
+        this.startBehavior(this.random() < 0.5 ? 'cube' : 'dance')
         return this.pose
       }
     }

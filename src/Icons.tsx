@@ -32,6 +32,26 @@ export function CheckIcon() {
   )
 }
 
+export function DanceIcon() {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M9 17V5l11-2v12M9 9l11-2" />
+      <ellipse cx="6" cy="18" rx="3" ry="2" />
+      <ellipse cx="17" cy="16" rx="3" ry="2" />
+    </svg>
+  )
+}
+
 export function RobotIcon() {
   return (
     <svg

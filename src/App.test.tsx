@@ -1,10 +1,10 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
-import type { ArmPhase } from './scene/motion'
+import type { ArmPhase, BehaviorRequest } from './scene/motion'
 
 type SceneControls = {
-  spawnRevision: number
+  behaviorRequest: BehaviorRequest | null
   onReady: () => void
   onPhaseChange: (phase: ArmPhase) => void
 }
@@ -52,32 +52,50 @@ afterEach(() => {
 })
 
 describe('accessible HTML shell', () => {
-  it('allows spawning with an open panel and disables the button throughout a routine', async () => {
-    window.history.replaceState(null, '', '/#education')
-    render(<App />)
-    const spawn = screen.getByRole('button', { name: 'Spawn a cube' }) as HTMLButtonElement
-    expect(spawn.disabled).toBe(true)
-    await screen.findByTestId('scene')
-    act(() => scene.props!.onReady())
-    expect(spawn.disabled).toBe(false)
-    fireEvent.click(spawn)
-    expect(scene.props!.spawnRevision).toBe(1)
-    expect(spawn.disabled).toBe(true)
-    expect(screen.getByText('MAKING ROOM')).toBeTruthy()
-    fireEvent.click(spawn)
-    expect(scene.props!.spawnRevision).toBe(1)
-    expect(screen.getByRole('heading', { name: 'Where it started.' })).toBeTruthy()
-    act(() => scene.props!.onPhaseChange('idle'))
-    expect(spawn.disabled).toBe(false)
-    expect(screen.getByText('TAKE YOUR TIME')).toBeTruthy()
-    act(() => scene.props!.onPhaseChange('returning'))
-    expect(spawn.disabled).toBe(true)
-    act(() => scene.props!.onPhaseChange('idle'))
-    fireEvent.click(screen.getByRole('button', { name: 'Pause robot motion' }))
-    expect(spawn.disabled).toBe(true)
-    fireEvent.click(screen.getByRole('button', { name: 'Resume robot motion' }))
-    expect(spawn.disabled).toBe(false)
-  })
+  it.each([
+    { name: 'Spawn a cube', kind: 'cube', caption: 'MAKING ROOM' },
+    { name: 'Dance', kind: 'dance', caption: 'FEELING THE GROOVE' },
+  ])(
+    'runs $name with an open panel and disables both behavior buttons',
+    async ({ name, kind, caption }) => {
+      window.history.replaceState(null, '', '/#education')
+      render(<App />)
+      const spawn = screen.getByRole('button', { name }) as HTMLButtonElement
+      const other = screen.getByRole('button', {
+        name: kind === 'cube' ? 'Dance' : 'Spawn a cube',
+      }) as HTMLButtonElement
+      expect(spawn.disabled).toBe(true)
+      expect(other.disabled).toBe(true)
+      await screen.findByTestId('scene')
+      act(() => scene.props!.onReady())
+      expect(spawn.disabled).toBe(false)
+      expect(other.disabled).toBe(false)
+      fireEvent.click(spawn)
+      expect(scene.props!.behaviorRequest?.revision).toBe(1)
+      expect(spawn.disabled).toBe(true)
+      expect(other.disabled).toBe(true)
+      expect(screen.getByText(caption)).toBeTruthy()
+      expect(scene.props!.behaviorRequest?.kind).toBe(kind)
+      fireEvent.click(other)
+      fireEvent.click(spawn)
+      expect(scene.props!.behaviorRequest?.revision).toBe(1)
+      expect(screen.getByRole('heading', { name: 'Where it started.' })).toBeTruthy()
+      act(() => scene.props!.onPhaseChange('idle'))
+      expect(spawn.disabled).toBe(false)
+      expect(other.disabled).toBe(false)
+      expect(screen.getByText('TAKE YOUR TIME')).toBeTruthy()
+      act(() => scene.props!.onPhaseChange('returning'))
+      expect(spawn.disabled).toBe(true)
+      expect(other.disabled).toBe(true)
+      act(() => scene.props!.onPhaseChange('idle'))
+      fireEvent.click(screen.getByRole('button', { name: 'Pause robot motion' }))
+      expect(spawn.disabled).toBe(true)
+      expect(other.disabled).toBe(true)
+      fireEvent.click(screen.getByRole('button', { name: 'Resume robot motion' }))
+      expect(spawn.disabled).toBe(false)
+      expect(other.disabled).toBe(false)
+    },
+  )
 
   it('keeps the drawer out of navigation until selection and makes it inert on close', async () => {
     render(<App />)
@@ -103,6 +121,7 @@ describe('accessible HTML shell', () => {
     expect(
       (screen.getByRole('button', { name: 'Spawn a cube' }) as HTMLButtonElement).disabled,
     ).toBe(true)
+    expect((screen.getByRole('button', { name: 'Dance' }) as HTMLButtonElement).disabled).toBe(true)
     fireEvent.click(within(screen.getByRole('navigation')).getByRole('link', { name: 'Work' }))
     expect(screen.getByRole('heading', { name: 'What I bring back.' })).toBeTruthy()
     expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'What I bring back.' }))
@@ -122,6 +141,7 @@ describe('accessible HTML shell', () => {
     expect(
       (screen.getByRole('button', { name: 'Spawn a cube' }) as HTMLButtonElement).disabled,
     ).toBe(true)
+    expect((screen.getByRole('button', { name: 'Dance' }) as HTMLButtonElement).disabled).toBe(true)
     const navigation = screen.getByRole('navigation')
     const publications = within(navigation).getByRole('link', { name: 'Publications' })
     fireEvent.click(publications)

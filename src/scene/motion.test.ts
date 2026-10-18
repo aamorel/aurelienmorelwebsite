@@ -3,6 +3,7 @@ import type { Section } from '../content'
 import { IDLE_POSES, TARGETS, WELCOME, toolPosition } from './config'
 import { ArmMotion } from './motion'
 import { CUBE_SPOTS } from './cubeRoutine'
+import { DANCE_DURATION } from './danceRoutine'
 
 function advance(motion: ArmMotion, seconds: number) {
   for (let frame = 0; frame < Math.round(seconds * 100); frame++) {
@@ -96,6 +97,91 @@ describe('independent arm gestures', () => {
 describe('occasional idle play', () => {
   const idle = { selected: null, revision: 0, mode: 'idle' as const, motionEnabled: true }
 
+  it('runs a manual dance, blocks both buttons until finished, then resumes wandering', () => {
+    const motion = new ArmMotion(() => 0)
+    expect(motion.startBehavior('dance')).toBe(false)
+    motion.sync(idle)
+    expect(motion.startBehavior('dance')).toBe(true)
+    expect(motion.phase).toBe('dancing')
+    expect(motion.cube).toBeNull()
+    advance(motion, 2)
+    const pose = [...motion.pose]
+    expect(motion.startBehavior('dance')).toBe(false)
+    expect(motion.startBehavior('cube')).toBe(false)
+    expect(motion.pose).toEqual(pose)
+    advance(motion, DANCE_DURATION - 2 + 0.1)
+    expect(motion.phase).toBe('idle')
+    expect(motion.pose).toEqual(WELCOME)
+    advance(motion, 6)
+    expect(motion.pose).toEqual(IDLE_POSES[1])
+    expect(motion.startBehavior('cube')).toBe(true)
+    expect(motion.startBehavior('dance')).toBe(false)
+  })
+
+  it.each<Section>(['education', 'work', 'publications'])(
+    'chooses a random dance while %s stays open and allows manual dancing afterwards',
+    (selected) => {
+      const motion = new ArmMotion(() => 0.9)
+      const reading = { ...reach(selected), mode: 'reading' as const }
+      motion.sync(reach(selected))
+      expect(motion.startBehavior('dance')).toBe(false)
+      advance(motion, 0.72)
+      motion.sync(reading)
+      advance(motion, 0.3)
+      expect(motion.startBehavior('dance')).toBe(false)
+      advance(motion, 1)
+      advance(motion, 13.3)
+      expect(motion.phase).toBe('idle')
+      advance(motion, 0.3)
+      expect(motion.phase).toBe('dancing')
+      expect(motion.cube).toBeNull()
+      motion.sync(reading)
+      expect(motion.phase).toBe('dancing')
+      advance(motion, DANCE_DURATION)
+      expect(motion.phase).toBe('idle')
+      expect(motion.startBehavior('dance')).toBe(true)
+      advance(motion, DANCE_DURATION + 0.01)
+      advance(motion, 32.2)
+      expect(motion.phase).toBe('idle')
+      advance(motion, 0.3)
+      expect(motion.phase).toBe('dancing')
+    },
+  )
+
+  it.each([0.3, 2.1, 5.9])('lets navigation interrupt dancing at %s seconds', (time) => {
+    const motion = new ArmMotion(() => 0)
+    motion.sync(idle)
+    motion.startBehavior('dance')
+    advance(motion, time)
+    const pose = [...motion.pose]
+    motion.sync(reach('publications'))
+    expect(motion.phase).toBe('reaching')
+    expect(motion.pose).toEqual(pose)
+    advance(motion, 0.72)
+    expect(motion.pose).toEqual(TARGETS.publications.touch)
+    motion.sync({ ...reach('publications'), mode: 'reading' })
+    advance(motion, 1.3)
+    expect(motion.pose).toEqual(WELCOME)
+  })
+
+  it('pauses dancing without replaying it on resume and bounds hidden-tab deltas', () => {
+    const motion = new ArmMotion(() => 0)
+    motion.sync(idle)
+    motion.startBehavior('dance')
+    advance(motion, 2)
+    motion.tick(90)
+    expect(motion.phase).toBe('dancing')
+    motion.sync({ ...idle, motionEnabled: false })
+    expect(motion.startBehavior('dance')).toBe(false)
+    advance(motion, 60)
+    expect(motion.pose).toEqual(WELCOME)
+    motion.sync(idle)
+    advance(motion, 8.9)
+    expect(motion.phase).toBe('idle')
+    advance(motion, 0.2)
+    expect(motion.phase).toBe('playing')
+  })
+
   it('waits before the first cube and spaces out subsequent routines', () => {
     const motion = new ArmMotion(() => 0)
     motion.sync(idle)
@@ -152,17 +238,17 @@ describe('occasional idle play', () => {
       const motion = new ArmMotion(() => 0)
       const reading = { ...reach(selected), mode: 'reading' as const }
       motion.sync(reach(selected))
-      expect(motion.spawnCube()).toBe(false)
+      expect(motion.startBehavior('cube')).toBe(false)
       advance(motion, 0.72)
       motion.sync(reading)
       advance(motion, 0.3)
       expect(motion.phase).toBe('returning')
-      expect(motion.spawnCube()).toBe(false)
+      expect(motion.startBehavior('cube')).toBe(false)
       advance(motion, 1)
       advance(motion, 9)
       expect(motion.phase).toBe('playing')
       advance(motion, 6.2)
-      expect(motion.spawnCube()).toBe(true)
+      expect(motion.startBehavior('cube')).toBe(true)
       motion.sync(reading)
       expect(motion.phase).toBe('playing')
       advance(motion, 6.2)
@@ -173,13 +259,13 @@ describe('occasional idle play', () => {
 
   it('rejects duplicate clicks and restarts the random cooldown after manual play', () => {
     const motion = new ArmMotion(() => 0)
-    expect(motion.spawnCube()).toBe(false)
+    expect(motion.startBehavior('cube')).toBe(false)
     motion.sync(idle)
     advance(motion, 8.8)
-    expect(motion.spawnCube()).toBe(true)
+    expect(motion.startBehavior('cube')).toBe(true)
     advance(motion, 3)
     const held = motion.cube
-    expect(motion.spawnCube()).toBe(false)
+    expect(motion.startBehavior('cube')).toBe(false)
     expect(motion.cube).toBe(held)
     advance(motion, 3.2)
     expect(motion.phase).toBe('idle')
@@ -188,7 +274,7 @@ describe('occasional idle play', () => {
     advance(motion, 0.4)
     expect(motion.phase).toBe('playing')
     motion.sync({ ...idle, motionEnabled: false })
-    expect(motion.spawnCube()).toBe(false)
+    expect(motion.startBehavior('cube')).toBe(false)
   })
 
   it.each([0, 0.25, 0.5, 0.75])(
@@ -196,12 +282,12 @@ describe('occasional idle play', () => {
     (random) => {
       const motion = new ArmMotion(() => random)
       motion.sync(idle)
-      motion.spawnCube()
+      motion.startBehavior('cube')
       advance(motion, 0.4)
       const first = [...motion.cube!.position]
       expect(first).toEqual(CUBE_SPOTS[Math.floor(random * CUBE_SPOTS.length)])
       advance(motion, 5.8)
-      motion.spawnCube()
+      motion.startBehavior('cube')
       advance(motion, 0.4)
       expect(motion.cube!.position).not.toEqual(first)
       expect(CUBE_SPOTS).toContainEqual(motion.cube!.position)

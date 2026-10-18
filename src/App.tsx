@@ -11,8 +11,8 @@ import {
 import { profile, sections, type Section } from './content'
 import { useNavigation } from './useNavigation'
 import { useReducedMotion, useSceneVisibility } from './hooks'
-import { ArrowIcon, ObjectIcon, RobotIcon } from './Icons'
-import type { ArmPhase } from './scene/motion'
+import { ArrowIcon, DanceIcon, ObjectIcon, RobotIcon } from './Icons'
+import type { ArmPhase, BehaviorRequest, IdleBehavior } from './scene/motion'
 import ContentPanel from './ContentPanel'
 
 const WorkbenchScene = lazy(() => import('./scene/WorkbenchScene'))
@@ -58,8 +58,9 @@ export default function App() {
   const [sceneFailed, setSceneFailed] = useState(false)
   const [sceneReady, setSceneReady] = useState(false)
   const [armPhase, setArmPhase] = useState<ArmPhase>('idle')
-  const [spawnRevision, setSpawnRevision] = useState(0)
+  const [behaviorRequest, setBehaviorRequest] = useState<BehaviorRequest | null>(null)
   const playing = armPhase === 'playing'
+  const dancing = armPhase === 'dancing'
   const [hovered, setHovered] = useState<Section | null>(null)
   const sceneRegion = useRef<HTMLDivElement>(null)
   const sceneVisible = useSceneVisibility(sceneRegion)
@@ -68,6 +69,18 @@ export default function App() {
   )
   const onFailure = useCallback(() => setSceneFailed(true), [])
   const onReady = useCallback(() => setSceneReady(true), [])
+  const behaviorDisabled =
+    !sceneReady ||
+    sceneFailed ||
+    !sceneVisible ||
+    reducedMotion ||
+    motionPaused ||
+    armPhase !== 'idle' ||
+    navigation.mode === 'reaching'
+  const startBehavior = (kind: IdleBehavior) => {
+    setArmPhase(kind === 'cube' ? 'playing' : 'dancing')
+    setBehaviorRequest((previous) => ({ kind, revision: (previous?.revision ?? 0) + 1 }))
+  }
   const select = (section: Section, origin?: HTMLElement | null) =>
     navigation.select(
       section,
@@ -145,7 +158,7 @@ export default function App() {
               </span>
               <span className="live-state">
                 <span
-                  className={`status-dot ${navigation.mode === 'reaching' || playing ? 'busy' : ''}`}
+                  className={`status-dot ${navigation.mode === 'reaching' || playing || dancing ? 'busy' : ''}`}
                 />
                 {sceneFailed
                   ? 'AT REST'
@@ -155,9 +168,11 @@ export default function App() {
                       ? 'AT REST'
                       : playing
                         ? 'MAKING ROOM'
-                        : navigation.mode === 'reading'
-                          ? 'TAKE YOUR TIME'
-                          : 'QUIETLY CURIOUS'}
+                        : dancing
+                          ? 'FEELING THE GROOVE'
+                          : navigation.mode === 'reading'
+                            ? 'TAKE YOUR TIME'
+                            : 'QUIETLY CURIOUS'}
               </span>
             </div>
             <div className="scene-viewport" ref={sceneRegion}>
@@ -174,7 +189,7 @@ export default function App() {
                     active={sceneVisible}
                     onReady={onReady}
                     onFailure={onFailure}
-                    spawnRevision={spawnRevision}
+                    behaviorRequest={behaviorRequest}
                     onPhaseChange={setArmPhase}
                   />
                 </Suspense>
@@ -188,23 +203,20 @@ export default function App() {
               </span>
               <div className="scene-controls">
                 <button
-                  className="spawn-cube"
-                  disabled={
-                    !sceneReady ||
-                    sceneFailed ||
-                    !sceneVisible ||
-                    reducedMotion ||
-                    motionPaused ||
-                    armPhase !== 'idle' ||
-                    navigation.mode === 'reaching'
-                  }
-                  onClick={() => {
-                    setArmPhase('playing')
-                    setSpawnRevision((revision) => revision + 1)
-                  }}
+                  className="behavior-button"
+                  disabled={behaviorDisabled}
+                  onClick={() => startBehavior('cube')}
                 >
                   <ObjectIcon kind="work" />
                   Spawn a cube
+                </button>
+                <button
+                  className="behavior-button"
+                  disabled={behaviorDisabled}
+                  onClick={() => startBehavior('dance')}
+                >
+                  <DanceIcon />
+                  Dance
                 </button>
                 <button
                   className="motion-toggle"

@@ -306,10 +306,10 @@ nav a[aria-current]::after {
 .scene-controls {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 6px;
   margin-left: auto;
 }
-.spawn-cube {
+.behavior-button {
   display: flex;
   align-items: center;
   gap: 7px;
@@ -325,15 +325,15 @@ nav a[aria-current]::after {
     border-color 180ms ease,
     opacity 180ms ease;
 }
-.spawn-cube svg {
+.behavior-button svg {
   width: 16px;
   height: 16px;
 }
-.spawn-cube:hover:not(:disabled) {
+.behavior-button:hover:not(:disabled) {
   background: #e9eddf;
   border-color: #9fae8e;
 }
-.spawn-cube:disabled {
+.behavior-button:disabled {
   opacity: 0.45;
 }
 .scene-hint {
@@ -353,6 +353,7 @@ nav a[aria-current]::after {
   gap: 6px;
   font-size: 10px;
   color: #747969;
+  white-space: nowrap;
   padding: 10px 0 10px 10px;
 }
 .motion-toggle > span {
