@@ -1,12 +1,13 @@
 import type { Section } from '../content'
 import type { Mode } from '../useNavigation'
-import { IDLE_POSES, SAFE, TARGETS, WELCOME, blendPose, type Pose } from './config'
+import { IDLE_POSES, SAFE, TARGETS, WELCOME, blendPose, type Point, type Pose } from './config'
 import { CUBE_SPOTS, CubeRoutine, type CubeState } from './cubeRoutine'
 import { DanceRoutine } from './danceRoutine'
+import { TrackRoutine } from './trackRoutine'
 
-export type ArmPhase = 'idle' | 'reaching' | 'returning' | 'playing' | 'dancing'
-export type IdleBehavior = 'cube' | 'dance'
-export type BehaviorRequest = { kind: IdleBehavior; revision: number }
+export type ArmPhase = 'idle' | 'reaching' | 'returning' | 'playing' | 'dancing' | 'tracking'
+export type Behavior = 'cube' | 'dance' | 'track'
+export type BehaviorRequest = { kind: Behavior; revision: number }
 type Step = { to: Pose; duration: number; phase: ArmPhase }
 type Request = { selected: Section | null; revision: number; mode: Mode; motionEnabled: boolean }
 
@@ -22,7 +23,7 @@ export class ArmMotion {
   private elapsed = 0
   private idleTime = 0
   private idleIndex = 0
-  private routine: CubeRoutine | DanceRoutine | null = null
+  private routine: CubeRoutine | DanceRoutine | TrackRoutine | null = null
   private playTime = 0
   private nextPlay = 0
   private lastSpot = -1
@@ -33,7 +34,28 @@ export class ArmMotion {
     this.nextPlay = 9 + random() * 5
   }
 
-  startBehavior(kind: IdleBehavior): boolean {
+  get danceTime() {
+    return this.routine instanceof DanceRoutine ? this.routine.elapsed : null
+  }
+  get trackingSeconds() {
+    return this.routine instanceof TrackRoutine ? this.routine.secondsRemaining : 0
+  }
+  get trackingTarget() {
+    return this.routine instanceof TrackRoutine ? this.routine.target : null
+  }
+
+  setTrackTarget(point: Point) {
+    if (this.routine instanceof TrackRoutine) this.routine.setTarget(point)
+  }
+
+  stopTracking() {
+    if (this.routine instanceof TrackRoutine) {
+      this.routine.stop()
+      this.phase = 'returning'
+    }
+  }
+
+  startBehavior(kind: Behavior): boolean {
     if (!this.request?.motionEnabled || this.phase !== 'idle' || this.request.mode === 'reaching')
       return false
     if (kind === 'cube') {
@@ -41,13 +63,15 @@ export class ArmMotion {
       const choices = CUBE_SPOTS.map((_, index) => index).filter((index) => index !== this.lastSpot)
       this.lastSpot = choices[Math.floor(this.random() * choices.length)]
       this.routine = new CubeRoutine(this.pose, CUBE_SPOTS[this.lastSpot])
-    } else {
+    } else if (kind === 'dance') {
       this.routine = new DanceRoutine(this.pose)
+    } else {
+      this.routine = new TrackRoutine(this.pose)
     }
     this.steps = []
     this.elapsed = 0
     this.cube = this.routine.cube
-    this.phase = kind === 'cube' ? 'playing' : 'dancing'
+    this.phase = kind === 'cube' ? 'playing' : kind === 'dance' ? 'dancing' : 'tracking'
     return true
   }
 
@@ -108,6 +132,9 @@ export class ArmMotion {
     if (this.routine) {
       this.pose = this.routine.tick(delta)
       this.cube = this.routine.cube
+      if (this.routine instanceof TrackRoutine && this.routine.secondsRemaining === 0) {
+        this.phase = 'returning'
+      }
       if (this.routine.finished) {
         this.routine = null
         this.cube = null

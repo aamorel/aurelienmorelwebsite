@@ -5,12 +5,15 @@ import type { ArmPhase, BehaviorRequest } from './scene/motion'
 
 type SceneControls = {
   behaviorRequest: BehaviorRequest | null
+  trackEnabled: boolean
+  onTrackTimeChange: (seconds: number) => void
   onReady: () => void
   onPhaseChange: (phase: ArmPhase) => void
 }
 const scene = vi.hoisted(() => ({
   fail: false,
   reduced: false,
+  trackable: true,
   props: null as SceneControls | null,
 }))
 vi.mock('./scene/WorkbenchScene', () => ({
@@ -24,13 +27,14 @@ vi.mock('./scene/WorkbenchScene', () => ({
 beforeEach(() => {
   scene.fail = false
   scene.reduced = false
+  scene.trackable = true
   scene.props = null
   window.history.replaceState(null, '', '/')
   vi.stubGlobal(
     'matchMedia',
-    vi.fn(() => ({
+    vi.fn((query: string) => ({
       get matches() {
-        return scene.reduced
+        return query.includes('prefers-reduced-motion') ? scene.reduced : scene.trackable
       },
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
@@ -55,6 +59,7 @@ describe('accessible HTML shell', () => {
   it.each([
     { name: 'Spawn a cube', kind: 'cube', caption: 'MAKING ROOM' },
     { name: 'Dance', kind: 'dance', caption: 'FEELING THE GROOVE' },
+    { name: 'Track', kind: 'track', caption: 'FOLLOWING YOU · 10s' },
   ])(
     'runs $name with an open panel and disables both behavior buttons',
     async ({ name, kind, caption }) => {
@@ -96,6 +101,27 @@ describe('accessible HTML shell', () => {
       expect(other.disabled).toBe(false)
     },
   )
+
+  it('hides Track on small screens or devices without a mouse', async () => {
+    scene.trackable = false
+    render(<App />)
+    await screen.findByTestId('scene')
+    expect(screen.queryByRole('button', { name: 'Track' })).toBeNull()
+    expect(scene.props!.trackEnabled).toBe(false)
+    expect(screen.getByRole('button', { name: 'Dance' })).toBeTruthy()
+  })
+
+  it('shows the tracking countdown and hint', async () => {
+    render(<App />)
+    await screen.findByTestId('scene')
+    act(() => scene.props!.onReady())
+    fireEvent.click(screen.getByRole('button', { name: 'Track' }))
+    expect(screen.getByText('Move your mouse over the bench.')).toBeTruthy()
+    act(() => scene.props!.onTrackTimeChange(9))
+    expect(screen.getByText('FOLLOWING YOU · 9s')).toBeTruthy()
+    act(() => scene.props!.onPhaseChange('idle'))
+    expect(screen.getByText('Pick an object. Follow your curiosity.')).toBeTruthy()
+  })
 
   it('keeps the drawer out of navigation until selection and makes it inert on close', async () => {
     render(<App />)

@@ -306,15 +306,15 @@ nav a[aria-current]::after {
 .scene-controls {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   margin-left: auto;
 }
 .behavior-button {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 5px;
   min-height: 36px;
-  padding: 7px 11px;
+  padding: 7px 8px;
   border: 1px solid #d4d7c8;
   border-radius: 5px;
   color: var(--green);
@@ -335,6 +335,9 @@ nav a[aria-current]::after {
 }
 .behavior-button:disabled {
   opacity: 0.45;
+}
+.scene-viewport.is-tracking canvas {
+  cursor: crosshair;
 }
 .scene-hint {
   font-size: 11px;

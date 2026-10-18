@@ -29,6 +29,8 @@ type Props = {
   onFailure: () => void
   behaviorRequest: BehaviorRequest | null
   onPhaseChange: (phase: ArmPhase) => void
+  trackEnabled: boolean
+  onTrackTimeChange: (seconds: number) => void
 }
 
 function CameraRig() {
@@ -472,6 +474,8 @@ export default function WorkbenchScene(props: Props) {
         motionEnabled={props.motionEnabled}
         behaviorRequest={props.behaviorRequest}
         onPhaseChange={props.onPhaseChange}
+        trackEnabled={props.trackEnabled}
+        onTrackTimeChange={props.onTrackTimeChange}
       />
       <DeskObject id="education" props={props}>
         <Notebook

@@ -306,3 +306,86 @@ describe('occasional idle play', () => {
     )
   })
 })
+
+describe('tracking and dance effects lifecycle', () => {
+  const idle = { selected: null, revision: 0, mode: 'idle' as const, motionEnabled: true }
+
+  it.each<Section>(['education', 'work', 'publications'])(
+    'tracks with %s open and resumes wandering',
+    (selected) => {
+      const motion = new ArmMotion(() => 0)
+      motion.sync({ ...idle, selected, mode: 'reading' })
+      expect(motion.startBehavior('track')).toBe(true)
+      motion.setTrackTarget([-1.3, 1.15, 0.3])
+      expect(motion.trackingSeconds).toBe(10)
+      expect(motion.danceTime).toBeNull()
+      expect(motion.cube).toBeNull()
+      expect(motion.startBehavior('dance')).toBe(false)
+      expect(motion.startBehavior('cube')).toBe(false)
+      expect(motion.startBehavior('track')).toBe(false)
+      advance(motion, 10.1)
+      expect(motion.phase).toBe('returning')
+      expect(motion.trackingSeconds).toBe(0)
+      expect(motion.trackingTarget).toBeNull()
+      advance(motion, 0.9)
+      expect(motion.phase).toBe('idle')
+      expect(motion.pose).toEqual(WELCOME)
+      advance(motion, 6)
+      expect(motion.pose).toEqual(IDLE_POSES[1])
+    },
+  )
+
+  it('returns smoothly when mouse tracking becomes unavailable', () => {
+    const motion = new ArmMotion(() => 0)
+    motion.sync(idle)
+    motion.startBehavior('track')
+    motion.setTrackTarget([-1.3, 1.15, 0.3])
+    advance(motion, 1)
+    const previous = [...motion.pose]
+    motion.stopTracking()
+    expect(motion.phase).toBe('returning')
+    expect(motion.pose).toEqual(previous)
+    advance(motion, 1)
+    expect(motion.phase).toBe('idle')
+    expect(motion.pose).toEqual(WELCOME)
+  })
+
+  it.each(['track', 'dance'] as const)(
+    'clears %s effects immediately on navigation or pause',
+    (kind) => {
+      const motion = new ArmMotion(() => 0)
+      motion.sync(idle)
+      motion.startBehavior(kind)
+      motion.setTrackTarget([-1.3, 1.15, 0.3])
+      advance(motion, 1)
+      if (kind === 'dance') expect(motion.danceTime).toBeCloseTo(1)
+      else expect(motion.trackingTarget).not.toBeNull()
+      const previous = [...motion.pose]
+      motion.sync(reach('education'))
+      expect(motion.pose).toEqual(previous)
+      expect(motion.danceTime).toBeNull()
+      expect(motion.trackingTarget).toBeNull()
+      expect(motion.trackingSeconds).toBe(0)
+      advance(motion, 0.72)
+      expect(motion.pose).toEqual(TARGETS.education.touch)
+      motion.sync({ ...reach('education'), mode: 'reading' })
+      advance(motion, 1.3)
+      motion.startBehavior(kind)
+      advance(motion, 1)
+      motion.sync({ ...reach('education'), mode: 'reading', motionEnabled: false })
+      expect(motion.pose).toEqual(WELCOME)
+      expect(motion.danceTime).toBeNull()
+      expect(motion.trackingTarget).toBeNull()
+      expect(motion.trackingSeconds).toBe(0)
+    },
+  )
+
+  it('ends confetti with the dance', () => {
+    const motion = new ArmMotion(() => 0)
+    motion.sync(idle)
+    motion.startBehavior('dance')
+    expect(motion.danceTime).toBe(0)
+    advance(motion, DANCE_DURATION + 0.1)
+    expect(motion.danceTime).toBeNull()
+  })
+})

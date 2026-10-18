@@ -18,6 +18,10 @@ export class DanceRoutine {
     this.pose = [...start]
   }
 
+  get elapsed() {
+    return this.time
+  }
+
   tick(delta: number): Pose {
     this.time = Math.min(DANCE_DURATION, this.time + Math.max(0, delta))
     if (this.time < INTRO) {

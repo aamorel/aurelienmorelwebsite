@@ -10,9 +10,10 @@ import {
 } from 'react'
 import { profile, sections, type Section } from './content'
 import { useNavigation } from './useNavigation'
-import { useReducedMotion, useSceneVisibility } from './hooks'
-import { ArrowIcon, DanceIcon, ObjectIcon, RobotIcon } from './Icons'
-import type { ArmPhase, BehaviorRequest, IdleBehavior } from './scene/motion'
+import { useCanTrack, useReducedMotion, useSceneVisibility } from './hooks'
+import { ArrowIcon, DanceIcon, ObjectIcon, RobotIcon, TrackIcon } from './Icons'
+import type { ArmPhase, BehaviorRequest, Behavior } from './scene/motion'
+import { TRACK_DURATION } from './scene/trackRoutine'
 import ContentPanel from './ContentPanel'
 
 const WorkbenchScene = lazy(() => import('./scene/WorkbenchScene'))
@@ -54,6 +55,7 @@ function SceneFallback({ failed = false }: { failed?: boolean }) {
 
 export default function App() {
   const reducedMotion = useReducedMotion()
+  const canTrack = useCanTrack()
   const [motionPaused, setMotionPaused] = useState(false)
   const [sceneFailed, setSceneFailed] = useState(false)
   const [sceneReady, setSceneReady] = useState(false)
@@ -61,6 +63,8 @@ export default function App() {
   const [behaviorRequest, setBehaviorRequest] = useState<BehaviorRequest | null>(null)
   const playing = armPhase === 'playing'
   const dancing = armPhase === 'dancing'
+  const tracking = armPhase === 'tracking'
+  const [trackSeconds, setTrackSeconds] = useState(0)
   const [hovered, setHovered] = useState<Section | null>(null)
   const sceneRegion = useRef<HTMLDivElement>(null)
   const sceneVisible = useSceneVisibility(sceneRegion)
@@ -77,8 +81,9 @@ export default function App() {
     motionPaused ||
     armPhase !== 'idle' ||
     navigation.mode === 'reaching'
-  const startBehavior = (kind: IdleBehavior) => {
-    setArmPhase(kind === 'cube' ? 'playing' : 'dancing')
+  const startBehavior = (kind: Behavior) => {
+    setArmPhase(kind === 'cube' ? 'playing' : kind === 'dance' ? 'dancing' : 'tracking')
+    if (kind === 'track') setTrackSeconds(TRACK_DURATION)
     setBehaviorRequest((previous) => ({ kind, revision: (previous?.revision ?? 0) + 1 }))
   }
   const select = (section: Section, origin?: HTMLElement | null) =>
@@ -158,7 +163,7 @@ export default function App() {
               </span>
               <span className="live-state">
                 <span
-                  className={`status-dot ${navigation.mode === 'reaching' || playing || dancing ? 'busy' : ''}`}
+                  className={`status-dot ${navigation.mode === 'reaching' || playing || dancing || tracking ? 'busy' : ''}`}
                 />
                 {sceneFailed
                   ? 'AT REST'
@@ -170,12 +175,14 @@ export default function App() {
                         ? 'MAKING ROOM'
                         : dancing
                           ? 'FEELING THE GROOVE'
-                          : navigation.mode === 'reading'
-                            ? 'TAKE YOUR TIME'
-                            : 'QUIETLY CURIOUS'}
+                          : tracking
+                            ? `FOLLOWING YOU · ${trackSeconds}s`
+                            : navigation.mode === 'reading'
+                              ? 'TAKE YOUR TIME'
+                              : 'QUIETLY CURIOUS'}
               </span>
             </div>
-            <div className="scene-viewport" ref={sceneRegion}>
+            <div className={`scene-viewport ${tracking ? 'is-tracking' : ''}`} ref={sceneRegion}>
               <SceneBoundary onFailure={onFailure}>
                 <Suspense fallback={<SceneFallback />}>
                   <WorkbenchScene
@@ -191,6 +198,8 @@ export default function App() {
                     onFailure={onFailure}
                     behaviorRequest={behaviorRequest}
                     onPhaseChange={setArmPhase}
+                    trackEnabled={canTrack}
+                    onTrackTimeChange={setTrackSeconds}
                   />
                 </Suspense>
               </SceneBoundary>
@@ -199,7 +208,10 @@ export default function App() {
             </div>
             <div className="scene-bottomline">
               <span className="scene-hint">
-                <span aria-hidden="true">↖</span> Pick an object. Follow your curiosity.
+                <span aria-hidden="true">↖</span>
+                {tracking
+                  ? 'Move your mouse over the bench.'
+                  : 'Pick an object. Follow your curiosity.'}
               </span>
               <div className="scene-controls">
                 <button
@@ -218,6 +230,17 @@ export default function App() {
                   <DanceIcon />
                   Dance
                 </button>
+                {canTrack && (
+                  <button
+                    className="behavior-button"
+                    disabled={behaviorDisabled}
+                    title="Follow your mouse for 10 seconds"
+                    onClick={() => startBehavior('track')}
+                  >
+                    <TrackIcon />
+                    Track
+                  </button>
+                )}
                 <button
                   className="motion-toggle"
                   onClick={() => setMotionPaused(!motionPaused)}

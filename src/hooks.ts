@@ -1,16 +1,23 @@
 import { useEffect, useState, type RefObject } from 'react'
 
-export function useReducedMotion() {
-  const [reduced, setReduced] = useState(
-    () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-  )
+function useMediaQuery(query: string) {
+  const [matches, setMatches] = useState(() => window.matchMedia(query).matches)
   useEffect(() => {
-    const media = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const update = () => setReduced(media.matches)
+    const media = window.matchMedia(query)
+    const update = () => setMatches(media.matches)
+    update()
     media.addEventListener('change', update)
     return () => media.removeEventListener('change', update)
-  }, [])
-  return reduced
+  }, [query])
+  return matches
+}
+
+export function useReducedMotion() {
+  return useMediaQuery('(prefers-reduced-motion: reduce)')
+}
+
+export function useCanTrack() {
+  return useMediaQuery('(min-width: 761px) and (hover: hover) and (pointer: fine)')
 }
 
 export function useSceneVisibility(ref: RefObject<HTMLDivElement | null>) {

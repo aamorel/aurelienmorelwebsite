@@ -1,10 +1,12 @@
 import { useEffect, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { RoundedBox } from '@react-three/drei'
-import { Group, MeshStandardMaterial } from 'three'
+import { Group, MeshStandardMaterial, Plane, Raycaster, Vector2, Vector3 } from 'three'
 import { ARM, type Pose } from './config'
 import { ArmMotion, type ArmPhase, type BehaviorRequest } from './motion'
 import { CUBE_SIZE } from './cubeRoutine'
+import { TRACK_HEIGHT } from './trackRoutine'
+import DanceConfetti from './DanceConfetti'
 import type { Section } from '../content'
 import type { Mode } from '../useNavigation'
 
@@ -72,6 +74,8 @@ type Props = {
   motionEnabled: boolean
   behaviorRequest: BehaviorRequest | null
   onPhaseChange: (phase: ArmPhase) => void
+  trackEnabled: boolean
+  onTrackTimeChange: (seconds: number) => void
 }
 
 export default function RobotArm({
@@ -81,6 +85,8 @@ export default function RobotArm({
   motionEnabled,
   behaviorRequest,
   onPhaseChange,
+  trackEnabled,
+  onTrackTimeChange,
 }: Props) {
   const yaw = useRef<Group>(null!)
   const shoulder = useRef<Group>(null!)
@@ -90,11 +96,14 @@ export default function RobotArm({
   const left = useRef<Group>(null!)
   const right = useRef<Group>(null!)
   const cube = useRef<Group>(null!)
+  const trackTarget = useRef<Group>(null!)
+  const lastTrackTime = useRef(0)
   const lastPhase = useRef<ArmPhase>('idle')
   const lastBehavior = useRef(behaviorRequest)
   const motion = useRef<ArmMotion | null>(null)
   if (!motion.current) motion.current = new ArmMotion()
   const invalidate = useThree((state) => state.invalidate)
+  const { gl, camera } = useThree()
 
   const apply = (pose: Pose) => {
     yaw.current.rotation.y = pose[0]
@@ -116,6 +125,14 @@ export default function RobotArm({
       lastPhase.current = phase
       onPhaseChange(phase)
     }
+    const seconds = motion.current!.trackingSeconds
+    if (seconds !== lastTrackTime.current) {
+      lastTrackTime.current = seconds
+      onTrackTimeChange(seconds)
+    }
+    const target = motion.current!.trackingTarget
+    trackTarget.current.visible = target !== null
+    if (target) trackTarget.current.position.fromArray(target)
   }
 
   useEffect(() => {
@@ -127,14 +144,52 @@ export default function RobotArm({
   useEffect(() => {
     if (!behaviorRequest || lastBehavior.current === behaviorRequest) return
     lastBehavior.current = behaviorRequest
-    motion.current!.startBehavior(behaviorRequest.kind)
+    if (behaviorRequest.kind !== 'track' || trackEnabled) {
+      motion.current!.startBehavior(behaviorRequest.kind)
+    }
     apply(motion.current!.pose)
     // A navigation or pause can supersede a click before this effect runs.
     onPhaseChange(motion.current!.phase)
     invalidate()
-  }, [behaviorRequest, invalidate, onPhaseChange])
+  }, [behaviorRequest, trackEnabled, invalidate, onPhaseChange])
 
-  useEffect(() => () => onPhaseChange('idle'), [onPhaseChange])
+  useEffect(() => {
+    if (!trackEnabled) {
+      motion.current!.stopTracking()
+      apply(motion.current!.pose)
+      invalidate()
+      return
+    }
+    const surface = gl.domElement.closest('.scene-viewport') ?? gl.domElement
+    const ray = new Raycaster()
+    const plane = new Plane(new Vector3(0, 1, 0), -TRACK_HEIGHT)
+    const pointer = new Vector2()
+    const target = new Vector3()
+    const follow = (event: Event) => {
+      const { pointerType, clientX, clientY } = event as PointerEvent
+      if (pointerType === 'touch' || motion.current!.phase !== 'tracking') return
+      const bounds = gl.domElement.getBoundingClientRect()
+      if (!bounds.width || !bounds.height) return
+      pointer.set(
+        ((clientX - bounds.left) / bounds.width) * 2 - 1,
+        1 - ((clientY - bounds.top) / bounds.height) * 2,
+      )
+      ray.setFromCamera(pointer, camera)
+      if (ray.ray.intersectPlane(plane, target)) {
+        motion.current!.setTrackTarget([target.x, target.y, target.z])
+      }
+    }
+    surface.addEventListener('pointermove', follow, { passive: true })
+    return () => surface.removeEventListener('pointermove', follow)
+  }, [trackEnabled, camera, gl, invalidate])
+
+  useEffect(
+    () => () => {
+      onPhaseChange('idle')
+      onTrackTimeChange(0)
+    },
+    [onPhaseChange, onTrackTimeChange],
+  )
 
   useFrame((_state, delta) => {
     if (motionEnabled) apply(motion.current!.tick(delta))
@@ -142,6 +197,13 @@ export default function RobotArm({
 
   return (
     <>
+      <DanceConfetti motion={motion} />
+      <group ref={trackTarget} visible={false}>
+        <mesh rotation={[-Math.PI / 2, 0, 0]} raycast={() => null}>
+          <ringGeometry args={[0.07, 0.085, 32]} />
+          <meshBasicMaterial color="#829673" transparent opacity={0.65} depthWrite={false} />
+        </mesh>
+      </group>
       <group ref={cube} visible={false}>
         <RoundedBox
           args={[CUBE_SIZE, CUBE_SIZE, CUBE_SIZE]}
