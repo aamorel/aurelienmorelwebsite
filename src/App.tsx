@@ -15,6 +15,7 @@ import { ArrowIcon, DanceIcon, ObjectIcon, RobotIcon, TrackIcon } from './Icons'
 import type { ArmPhase, BehaviorRequest, Behavior } from './scene/motion'
 import { TRACK_DURATION } from './scene/trackRoutine'
 import ContentPanel from './ContentPanel'
+import Hobbies from './Hobbies'
 
 const WorkbenchScene = lazy(() => import('./scene/WorkbenchScene'))
 
@@ -266,6 +267,7 @@ export default function App() {
           </section>
           <ContentPanel {...navigation} select={select} />
         </div>
+        <Hobbies motionEnabled={!reducedMotion && !motionPaused} />
         <section className="contact-strip" id="contact" aria-labelledby="contact-heading">
           <div>
             <span className="eyebrow">THE NEXT CHAPTER</span>

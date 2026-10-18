@@ -14,6 +14,7 @@ const scene = vi.hoisted(() => ({
   fail: false,
   reduced: false,
   trackable: true,
+  hobbiesFail: false,
   props: null as SceneControls | null,
 }))
 vi.mock('./scene/WorkbenchScene', () => ({
@@ -23,11 +24,18 @@ vi.mock('./scene/WorkbenchScene', () => ({
     return <div data-testid="scene">Scene placeholder</div>
   },
 }))
+vi.mock('./scene/HobbiesScene', () => ({
+  default: () => {
+    if (scene.hobbiesFail) throw new Error('Hobby display unavailable')
+    return <div data-testid="hobby-display" />
+  },
+}))
 
 beforeEach(() => {
   scene.fail = false
   scene.reduced = false
   scene.trackable = true
+  scene.hobbiesFail = false
   scene.props = null
   window.history.replaceState(null, '', '/')
   vi.stubGlobal(
@@ -56,6 +64,23 @@ afterEach(() => {
 })
 
 describe('accessible HTML shell', () => {
+  it('keeps hobby names readable and navigation usable when the decorative display fails', async () => {
+    scene.hobbiesFail = true
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    render(<App />)
+    await screen.findByTestId('scene')
+    const names = within(screen.getByRole('list', { name: 'My hobbies' })).getAllByRole('listitem')
+    expect(names.map((item) => item.textContent)).toEqual([
+      '01Saxophone',
+      '02Basketball',
+      '03Volleyball',
+      '04Chess',
+      '05Running',
+    ])
+    fireEvent.click(within(screen.getByRole('navigation')).getByRole('link', { name: 'Work' }))
+    expect(screen.getByRole('heading', { name: 'What I bring back.' })).toBeTruthy()
+  })
+
   it.each([
     { name: 'Spawn a cube', kind: 'cube', caption: 'MAKING ROOM' },
     { name: 'Dance', kind: 'dance', caption: 'FEELING THE GROOVE' },

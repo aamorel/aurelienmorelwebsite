@@ -100,6 +100,15 @@ export const work = [
   },
 ]
 
+export const hobbies = [
+  { id: 'saxophone', label: 'Saxophone' },
+  { id: 'basketball', label: 'Basketball' },
+  { id: 'volleyball', label: 'Volleyball' },
+  { id: 'chess', label: 'Chess' },
+  { id: 'running', label: 'Running' },
+] as const
+export type Hobby = (typeof hobbies)[number]['id']
+
 export type Section = 'publications' | 'education' | 'work'
 export const sections: {
   id: Section
