@@ -1,4 +1,5 @@
-// Career facts: user-supplied Aurelien_Morel_Resume.pdf.
+// Career facts: user-supplied Aurelien_Morel_Resume.pdf and subsequent clarifications.
+// Typeless sale to Doctolib for an undisclosed amount: confirmed by Aurélien.
 // Return-to-robotics positioning: Aurélien's stated direction.
 // Publication summaries and links: the IEEE/arXiv records linked below.
 export const profile = {
@@ -80,22 +81,22 @@ export const publications = [
 
 export const work = [
   {
-    organization: 'Doctolib',
-    role: 'Senior ML Engineer',
-    dates: 'May 2024 – present',
-    description:
-      'Building and deploying AI systems in production: real-time inference, LLM agents, orchestration, and evaluation. Led the AI side of a reasoning-system redesign and worked on GPU optimization and autoscaling.',
-    context: 'Applied to speech and conversational products in healthcare.',
-    tags: ['Real-time systems', 'Agents & evaluation', 'Production ML'],
-  },
-  {
     organization: 'Typeless',
     role: 'Co-founder & CTO',
     dates: '2023 – May 2024',
     description:
       'Co-founded a four-person startup and built the initial product end to end, from models and APIs to frontend prototypes. Led product development and customer pilots, raised pre-seed funding, and secured paid pilots.',
-    context: 'AI consultation assistant. Acquired by Doctolib in May 2024.',
+    context: 'Acquired by Doctolib in May 2024 for an undisclosed amount.',
     tags: ['Prototyping', 'Product engineering', 'Startup building'],
+  },
+  {
+    organization: 'Doctolib',
+    role: 'Senior ML Engineer',
+    dates: 'May 2024 – present',
+    description:
+      'Building and deploying AI systems in production: real-time inference, LLM agents, orchestration, and evaluation. Led the AI side of a reasoning-system redesign and worked on GPU optimization and autoscaling.',
+    context: 'Joined Doctolib following its acquisition of Typeless.',
+    tags: ['Real-time systems', 'Agents & evaluation', 'Production ML'],
   },
 ]
 

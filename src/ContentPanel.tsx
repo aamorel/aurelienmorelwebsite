@@ -145,13 +145,11 @@ export default function ContentPanel({ visible, mode, close, select, focusReques
             )}
             {content === 'work' && (
               <>
-                <p className="panel-lead">
-                  Research instincts. Experience building things that ship.
-                </p>
+                <p className="panel-lead">Co-founder & CTO of Typeless, acquired by Doctolib.</p>
                 <p>
-                  After BioRob, I co-founded Typeless and moved into production AI. I’m bringing
-                  that experience with prototyping, real-time systems, and evaluation back to
-                  robotics.
+                  We built Typeless from the first prototype to paid pilots, then sold the company
+                  to Doctolib in May 2024 for an undisclosed amount. I’m bringing that experience
+                  building and shipping AI systems back to robotics.
                 </p>
                 <div className="work-list">
                   {work.map((item) => (
