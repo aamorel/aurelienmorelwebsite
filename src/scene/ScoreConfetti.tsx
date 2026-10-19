@@ -2,11 +2,16 @@ import { useLayoutEffect, useMemo, useRef, type RefObject } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Color, DoubleSide, InstancedMesh, MeshStandardMaterial, Object3D } from 'three'
 import type { ArmMotion } from './motion'
-import { CONFETTI_COLORS, CONFETTI_COUNT, confettiAt, createConfetti } from './confetti'
+import {
+  CONFETTI_COLORS,
+  CONFETTI_COUNT,
+  CONFETTI_DURATION,
+  confettiAt,
+  createConfetti,
+} from './confetti'
 import { smooth } from './config'
-import { DANCE_DURATION } from './danceRoutine'
 
-export default function DanceConfetti({ motion }: { motion: RefObject<ArmMotion | null> }) {
+export default function ScoreConfetti({ motion }: { motion: RefObject<ArmMotion | null> }) {
   const mesh = useRef<InstancedMesh>(null!)
   const material = useRef<MeshStandardMaterial>(null!)
   const pieces = useMemo(() => createConfetti(), [])
@@ -19,10 +24,10 @@ export default function DanceConfetti({ motion }: { motion: RefObject<ArmMotion 
   }, [pieces])
 
   useFrame(() => {
-    const time = motion.current?.danceTime ?? null
+    const time = motion.current?.confettiTime ?? null
     mesh.current.visible = time !== null
     if (time === null) return
-    material.current.opacity = 1 - smooth((time - DANCE_DURATION + 0.6) / 0.6)
+    material.current.opacity = 1 - smooth((time - CONFETTI_DURATION + 0.6) / 0.6)
     pieces.forEach((piece, index) => {
       const state = confettiAt(piece, time)
       transform.position.fromArray(state.position)

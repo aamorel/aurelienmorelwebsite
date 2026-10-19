@@ -4,6 +4,7 @@ import { IDLE_POSES, TARGETS, WELCOME, toolPosition } from './config'
 import { ArmMotion } from './motion'
 import { CUBE_SPOTS, SCORE_TIME } from './cubeRoutine'
 import { DANCE_DURATION } from './danceRoutine'
+import { CONFETTI_DURATION } from './confetti'
 
 function advance(motion: ArmMotion, seconds: number) {
   for (let frame = 0; frame < Math.round(seconds * 100); frame++) {
@@ -395,12 +396,70 @@ describe('tracking and dance effects lifecycle', () => {
     },
   )
 
-  it('ends confetti with the dance', () => {
+  it('ends the disco ball with the dance without triggering confetti', () => {
     const motion = new ArmMotion(() => 0)
     motion.sync(idle)
     motion.startBehavior('dance')
     expect(motion.danceTime).toBe(0)
-    advance(motion, DANCE_DURATION + 0.1)
+    advance(motion, 3)
+    expect(motion.confettiTime).toBeNull()
+    advance(motion, DANCE_DURATION - 3 + 0.1)
     expect(motion.danceTime).toBeNull()
+    expect(motion.confettiTime).toBeNull()
   })
+})
+
+describe('basket celebration', () => {
+  const idle = { selected: null, revision: 0, mode: 'idle' as const, motionEnabled: true }
+
+  it.each(['manual', 'automatic'])(
+    'celebrates a %s basket only after scoring, then finishes while idle',
+    (trigger) => {
+      const motion = new ArmMotion(() => 0)
+      motion.sync(idle)
+      if (trigger === 'manual') motion.startBehavior('cube')
+      else advance(motion, 9.02)
+      expect(motion.confettiTime).toBeNull()
+      advance(motion, SCORE_TIME - 0.05)
+      expect(motion.confettiTime).toBeNull()
+      advance(motion, 0.1)
+      expect(motion.confettiTime).toBeGreaterThan(0)
+      expect(motion.confettiTime).toBeLessThan(0.09)
+      advance(motion, 0.6)
+      expect(motion.phase).toBe('idle')
+      expect(motion.cube).toBeNull()
+      expect(motion.basketTime).toBeNull()
+      expect(motion.confettiTime).toBeGreaterThan(0.6)
+      advance(motion, CONFETTI_DURATION)
+      expect(motion.confettiTime).toBeNull()
+    },
+  )
+
+  it.each(['pause', 'navigation'])('clears lingering confetti on %s', (action) => {
+    const motion = new ArmMotion(() => 0)
+    motion.sync(idle)
+    motion.startBehavior('cube')
+    advance(motion, 6.2)
+    expect(motion.phase).toBe('idle')
+    expect(motion.confettiTime).not.toBeNull()
+    motion.sync(action === 'pause' ? { ...idle, motionEnabled: false } : reach('education'))
+    expect(motion.confettiTime).toBeNull()
+    advance(motion, 1)
+    expect(motion.confettiTime).toBeNull()
+  })
+
+  it.each(['cube', 'dance', 'track'] as const)(
+    'clears the last celebration when starting %s',
+    (kind) => {
+      const motion = new ArmMotion(() => 0)
+      motion.sync(idle)
+      motion.startBehavior('cube')
+      advance(motion, 6.2)
+      expect(motion.confettiTime).not.toBeNull()
+      expect(motion.startBehavior(kind)).toBe(true)
+      expect(motion.confettiTime).toBeNull()
+      advance(motion, 1)
+      expect(motion.confettiTime).toBeNull()
+    },
+  )
 })

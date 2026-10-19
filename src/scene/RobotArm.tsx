@@ -6,7 +6,8 @@ import { ARM, type Pose } from './config'
 import { ArmMotion, type ArmPhase, type BehaviorRequest } from './motion'
 import { CUBE_SIZE } from './cubeRoutine'
 import { TRACK_HEIGHT } from './trackRoutine'
-import DanceConfetti from './DanceConfetti'
+import ScoreConfetti from './ScoreConfetti'
+import DiscoBall from './DiscoBall'
 import BasketballHoop from './BasketballHoop'
 import { palette } from './palette'
 import type { Section } from '../content'
@@ -199,7 +200,8 @@ export default function RobotArm({
 
   return (
     <>
-      <DanceConfetti motion={motion} />
+      <ScoreConfetti motion={motion} />
+      <DiscoBall motion={motion} motionEnabled={motionEnabled} />
       <BasketballHoop motion={motion} motionEnabled={motionEnabled} />
       <group ref={trackTarget} visible={false}>
         <mesh rotation={[-Math.PI / 2, 0, 0]} raycast={() => null}>

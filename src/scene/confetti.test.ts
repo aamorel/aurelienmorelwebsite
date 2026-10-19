@@ -1,12 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { confettiAt, createConfetti, clearConfettiSpot } from './confetti'
-import { DANCE_DURATION } from './danceRoutine'
+import { CONFETTI_DURATION, confettiAt, createConfetti, clearConfettiSpot } from './confetti'
 
 // Reproducible scatter, including the bounded retry path for occupied spots.
 let seed = 7
 const random = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646
 
-describe('dance confetti', () => {
+describe('basket celebration confetti', () => {
   it.each([random, () => 0.5])(
     'lands flat on clear parts of the bench and disappears',
     (random) => {
@@ -27,7 +26,7 @@ describe('dance confetti', () => {
         expect(settled.rotation[0]).toBeCloseTo(-Math.PI / 2, 8)
         expect(settled.rotation[1]).toBeCloseTo(0, 8)
         expect(settled.scale).toBeGreaterThan(0)
-        expect(confettiAt(piece, DANCE_DURATION).scale).toBeCloseTo(0, 8)
+        expect(confettiAt(piece, CONFETTI_DURATION).scale).toBeCloseTo(0, 8)
       }
     },
   )

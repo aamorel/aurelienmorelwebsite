@@ -4,6 +4,7 @@ import { IDLE_POSES, SAFE, TARGETS, WELCOME, blendPose, type Point, type Pose } 
 import { CUBE_SPOTS, CubeRoutine, type CubeState } from './cubeRoutine'
 import { DanceRoutine } from './danceRoutine'
 import { TrackRoutine } from './trackRoutine'
+import { CONFETTI_DURATION } from './confetti'
 
 export type ArmPhase = 'idle' | 'reaching' | 'returning' | 'playing' | 'dancing' | 'tracking'
 export type Behavior = 'cube' | 'dance' | 'track'
@@ -17,6 +18,7 @@ export class ArmMotion {
   pose: Pose = [...WELCOME]
   phase: ArmPhase = 'idle'
   cube: CubeState | null = null
+  confettiTime: number | null = null
   private request: Request | null = null
   private steps: Step[] = []
   private start: Pose = [...WELCOME]
@@ -73,6 +75,7 @@ export class ArmMotion {
     }
     this.steps = []
     this.elapsed = 0
+    this.confettiTime = null
     this.cube = this.routine.cube
     this.phase = kind === 'cube' ? 'playing' : kind === 'dance' ? 'dancing' : 'tracking'
     return true
@@ -95,6 +98,7 @@ export class ArmMotion {
     this.idleTime = 0
     this.routine = null
     this.cube = null
+    this.confettiTime = null
     this.playTime = 0
 
     if (!request.motionEnabled) {
@@ -132,9 +136,18 @@ export class ArmMotion {
     if (!this.request?.motionEnabled) return this.pose
     // Avoid jumping through a gesture when a hidden/offscreen scene resumes.
     let delta = Math.min(Math.max(rawDelta, 0), 0.06)
+    // A scored basket celebrates after the arm has returned to wandering.
+    if (this.confettiTime !== null) {
+      this.confettiTime += delta
+      if (this.confettiTime >= CONFETTI_DURATION) this.confettiTime = null
+    }
     if (this.routine) {
+      const beforeScore = this.basketTime
       this.pose = this.routine.tick(delta)
       this.cube = this.routine.cube
+      if (beforeScore === null && this.basketTime !== null) {
+        this.confettiTime = this.basketTime
+      }
       if (this.routine instanceof TrackRoutine && this.routine.secondsRemaining === 0) {
         this.phase = 'returning'
       }

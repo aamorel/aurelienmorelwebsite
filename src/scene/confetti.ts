@@ -1,7 +1,15 @@
 import { smooth, type Point } from './config'
+import { palette } from './palette'
 
-export const CONFETTI_COLORS = ['#829673', '#ede1bc', '#bc7854', '#b28c5e', '#56684d']
+export const CONFETTI_COLORS = [
+  palette.sage,
+  palette.cream,
+  palette.clay,
+  palette.brass,
+  palette.green,
+]
 export const CONFETTI_COUNT = 72
+export const CONFETTI_DURATION = 6.3
 export type ConfettiPiece = {
   x: number
   z: number
