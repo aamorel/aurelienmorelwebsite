@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { Section } from '../content'
 import { IDLE_POSES, TARGETS, WELCOME, toolPosition } from './config'
 import { ArmMotion } from './motion'
-import { CUBE_SPOTS } from './cubeRoutine'
+import { CUBE_SPOTS, SCORE_TIME } from './cubeRoutine'
 import { DANCE_DURATION } from './danceRoutine'
 
 function advance(motion: ArmMotion, seconds: number) {
@@ -304,6 +304,21 @@ describe('occasional idle play', () => {
     expect(Math.max(...motion.pose.map((value, i) => Math.abs(value - before[i])))).toBeLessThan(
       0.2,
     )
+  })
+
+  it.each(['pause', 'navigation', 'finish'] as const)('clears the basket reaction on %s', (end) => {
+    const motion = new ArmMotion(() => 0)
+    motion.sync(idle)
+    motion.startBehavior('cube')
+    advance(motion, SCORE_TIME - 0.05)
+    expect(motion.basketTime).toBeNull()
+    advance(motion, 0.1)
+    expect(motion.basketTime).toBeCloseTo(0.05, 2)
+    if (end === 'pause') motion.sync({ ...idle, motionEnabled: false })
+    else if (end === 'navigation') motion.sync(reach('education'))
+    else advance(motion, 0.5)
+    expect(motion.basketTime).toBeNull()
+    expect(motion.cube).toBeNull()
   })
 })
 

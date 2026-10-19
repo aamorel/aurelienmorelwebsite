@@ -82,7 +82,7 @@ describe('accessible HTML shell', () => {
   })
 
   it.each([
-    { name: 'Spawn a cube', kind: 'cube', caption: 'MAKING ROOM' },
+    { name: 'Spawn a cube', kind: 'cube', caption: 'TAKING A SHOT' },
     { name: 'Dance', kind: 'dance', caption: 'FEELING THE GROOVE' },
     { name: 'Track', kind: 'track', caption: 'FOLLOWING YOU · 10s' },
   ])(

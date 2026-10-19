@@ -7,6 +7,7 @@ import { ArmMotion, type ArmPhase, type BehaviorRequest } from './motion'
 import { CUBE_SIZE } from './cubeRoutine'
 import { TRACK_HEIGHT } from './trackRoutine'
 import DanceConfetti from './DanceConfetti'
+import BasketballHoop from './BasketballHoop'
 import { palette } from './palette'
 import type { Section } from '../content'
 import type { Mode } from '../useNavigation'
@@ -199,6 +200,7 @@ export default function RobotArm({
   return (
     <>
       <DanceConfetti motion={motion} />
+      <BasketballHoop motion={motion} />
       <group ref={trackTarget} visible={false}>
         <mesh rotation={[-Math.PI / 2, 0, 0]} raycast={() => null}>
           <ringGeometry args={[0.07, 0.085, 32]} />

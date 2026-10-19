@@ -173,7 +173,7 @@ export default function App() {
                     : reducedMotion || motionPaused
                       ? 'AT REST'
                       : playing
-                        ? 'MAKING ROOM'
+                        ? 'TAKING A SHOT'
                         : dancing
                           ? 'FEELING THE GROOVE'
                           : tracking

@@ -37,6 +37,9 @@ export class ArmMotion {
   get danceTime() {
     return this.routine instanceof DanceRoutine ? this.routine.elapsed : null
   }
+  get basketTime() {
+    return this.routine instanceof CubeRoutine ? this.routine.timeSinceScore : null
+  }
   get trackingSeconds() {
     return this.routine instanceof TrackRoutine ? this.routine.secondsRemaining : 0
   }

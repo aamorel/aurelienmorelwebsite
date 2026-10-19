@@ -39,8 +39,8 @@ function CameraRig() {
   useLayoutEffect(() => {
     const orthographic = camera as OrthographicCamera
     orthographic.position.set(4.8, 6.4, 8.8)
-    orthographic.lookAt(new Vector3(0, 0.5, 0))
-    orthographic.zoom = Math.min(size.width / 6.5, size.height / 4.3)
+    orthographic.lookAt(new Vector3(-0.25, 0.75, 0))
+    orthographic.zoom = Math.min(size.width / 7.4, size.height / 5.2)
     orthographic.updateProjectionMatrix()
     invalidate()
   }, [camera, size, invalidate])
