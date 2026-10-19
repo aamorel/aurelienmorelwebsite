@@ -22,18 +22,20 @@ function DisplayItem({
   const root = useRef<Group>(null!)
   const item = useRef<Group>(null!)
   const { size, invalidate } = useThree()
-  const columns = compact ? 3 : 5
-  const rows = compact ? 2 : 1
-  const row = compact && index > 2 ? 1 : 0
+  const columns = compact ? 3 : 1
+  const rows = compact ? 2 : 5
+  const row = compact ? (index > 2 ? 1 : 0) : index
   // Centre the pair in the second row, matching the HTML labels.
-  const column = row ? index - 3 + 0.5 : index
+  const column = compact ? (row ? index - 3 + 0.5 : index) : 0
   const cellWidth = size.width / columns
   const cellHeight = size.height / rows
-  const scale = Math.min(cellWidth * 0.54, compact ? 80 : 94)
+  const scale = compact
+    ? Math.min(cellWidth * 0.54, 80)
+    : Math.min(cellWidth * 0.38, (cellHeight - 24) / 1.7, 56)
   useLayoutEffect(() => {
     root.current.position.set(
       -size.width / 2 + (column + 0.5) * cellWidth,
-      size.height / 2 - row * cellHeight - (cellHeight - 38) / 2,
+      size.height / 2 - row * cellHeight - (cellHeight - (compact ? 38 : 22)) / 2,
       0,
     )
     root.current.scale.setScalar(scale)

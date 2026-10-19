@@ -16,6 +16,7 @@ import type { ArmPhase, BehaviorRequest, Behavior } from './scene/motion'
 import { TRACK_DURATION } from './scene/trackRoutine'
 import ContentPanel from './ContentPanel'
 import Hobbies from './Hobbies'
+import ChessPuzzle from './ChessPuzzle'
 
 const WorkbenchScene = lazy(() => import('./scene/WorkbenchScene'))
 
@@ -55,6 +56,8 @@ function SceneFallback({ failed = false }: { failed?: boolean }) {
 }
 
 export default function App() {
+  const [hobbiesOpen, setHobbiesOpen] = useState(true)
+  const [chessOpen, setChessOpen] = useState(false)
   const reducedMotion = useReducedMotion()
   const canTrack = useCanTrack()
   const [motionPaused, setMotionPaused] = useState(false)
@@ -156,7 +159,15 @@ export default function App() {
             <p>{profile.introduction}</p>
           </div>
         </section>
-        <div className={`workbench-layout ${navigation.visible ? 'has-panel' : ''}`}>
+        <div
+          className={`workbench-layout ${navigation.visible ? 'has-panel' : ''} ${hobbiesOpen ? 'has-hobbies' : ''}`}
+        >
+          <Hobbies
+            motionEnabled={!reducedMotion && !motionPaused && !chessOpen}
+            open={hobbiesOpen}
+            onToggle={() => setHobbiesOpen(!hobbiesOpen)}
+            onChess={() => setChessOpen(true)}
+          />
           <section className="scene-section" aria-label="Interactive robot workbench">
             <div className="scene-topline">
               <span className="eyebrow">
@@ -194,7 +205,7 @@ export default function App() {
                     setHovered={setHovered}
                     select={select}
                     motionEnabled={!reducedMotion && !motionPaused}
-                    active={sceneVisible}
+                    active={sceneVisible && !chessOpen}
                     onReady={onReady}
                     onFailure={onFailure}
                     behaviorRequest={behaviorRequest}
@@ -267,7 +278,6 @@ export default function App() {
           </section>
           <ContentPanel {...navigation} select={select} />
         </div>
-        <Hobbies motionEnabled={!reducedMotion && !motionPaused} />
         <section className="contact-strip" id="contact" aria-labelledby="contact-heading">
           <div>
             <span className="eyebrow">THE NEXT CHAPTER</span>
@@ -291,18 +301,7 @@ export default function App() {
           </div>
         </section>
       </main>
-      <footer className="site-footer">
-        <span>
-          Made with care{' '}
-          <span className="footer-star" aria-hidden="true">
-            ✳
-          </span>{' '}
-          and a little engineering.
-        </span>
-        <span>
-          Always a work in progress.<span className="footer-version"> v.01</span>
-        </span>
-      </footer>
+      {chessOpen && <ChessPuzzle onClose={() => setChessOpen(false)} />}
       <div className="sr-only" role="status" aria-live="polite">
         {navigation.mode === 'reaching'
           ? `Opening ${navigation.selected}`
