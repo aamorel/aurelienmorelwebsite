@@ -1,7 +1,7 @@
 import { useRef, type ComponentRef, type RefObject } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Line, RoundedBox } from '@react-three/drei'
-import { MeshStandardMaterial } from 'three'
+import { Group, MeshStandardMaterial } from 'three'
 import { HOOP_CENTER, HOOP_FACING, HOOP_RADIUS, RIM_THICKNESS } from './basketball'
 import { palette } from './palette'
 import type { ArmMotion } from './motion'
@@ -22,10 +22,12 @@ for (let strand = 0; strand < 12; strand++) {
 }
 
 export default function BasketballHoop({ motion }: { motion: RefObject<ArmMotion | null> }) {
+  const hoop = useRef<Group>(null!)
   const netLines = useRef<ComponentRef<typeof Line>>(null!)
   const lastReaction = useRef(0)
   const rim = useRef<MeshStandardMaterial>(null!)
   useFrame(() => {
+    hoop.current.visible = motion.current?.phase === 'playing'
     const time = motion.current?.basketTime ?? null
     const reaction = time === null || time >= 0.4 ? 0 : Math.sin((time / 0.4) * Math.PI)
     if (reaction === lastReaction.current) return
@@ -50,7 +52,7 @@ export default function BasketballHoop({ motion }: { motion: RefObject<ArmMotion
   })
 
   return (
-    <group position={HOOP_CENTER} rotation={[0, HOOP_FACING, 0]}>
+    <group ref={hoop} visible={false} position={HOOP_CENTER} rotation={[0, HOOP_FACING, 0]}>
       <RoundedBox
         args={[0.75, 0.1, 0.8]}
         radius={0.045}
