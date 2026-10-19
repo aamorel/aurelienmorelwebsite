@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { Chess } from 'chess.js'
 import ChessPuzzle, { PUZZLE_FEN } from './ChessPuzzle'
@@ -13,38 +13,81 @@ beforeEach(() => {
 })
 afterEach(() => {
   cleanup()
+  vi.useRealTimers()
   vi.restoreAllMocks()
 })
 
-it('has exactly one mate-in-one solution, Re8#', () => {
+it('has exactly one mate-in-one solution, e8=N#', () => {
   const game = new Chess(PUZZLE_FEN)
   const mates = game.moves().filter((move) => {
     const attempt = new Chess(PUZZLE_FEN)
     attempt.move(move)
     return attempt.isCheckmate()
   })
-  expect(mates).toEqual(['Re8#'])
+  expect(mates).toEqual(['e8=N#'])
 })
-it('rejects illegal and non-mating moves, accepts checkmate, and resets', () => {
+function promote(piece: string) {
+  fireEvent.click(screen.getByRole('button', { name: 'e7, white pawn' }))
+  fireEvent.click(screen.getByRole('button', { name: 'e8, empty, legal destination' }))
+  fireEvent.click(screen.getByRole('button', { name: `Promote to ${piece}` }))
+}
+it('rejects illegal moves and every wrong promotion before accepting knight mate', () => {
   render(<ChessPuzzle onClose={() => {}} />)
-  fireEvent.click(screen.getByRole('button', { name: 'e1, white rook' }))
+  fireEvent.click(screen.getByRole('button', { name: 'e7, white pawn' }))
   fireEvent.click(screen.getByRole('button', { name: 'd2, empty' }))
   expect(screen.getByRole('status').textContent).toContain('not legal')
-  fireEvent.click(screen.getByRole('button', { name: 'e2, empty, legal destination' }))
-  expect(screen.getByRole('status').textContent).toContain('not checkmate')
-  fireEvent.click(screen.getByRole('button', { name: 'e8, empty, legal destination' }))
-  expect(screen.getByRole('status').textContent).toContain('Re8# — checkmate!')
+  for (const piece of ['queen', 'rook', 'bishop']) {
+    promote(piece)
+    expect(screen.getByRole('status').textContent).toContain('not checkmate')
+    expect(screen.getByRole('button', { name: 'e7, white pawn' })).toBeTruthy()
+  }
   fireEvent.click(screen.getByRole('button', { name: /Start again/ }))
-  expect(screen.getByRole('button', { name: 'e1, white rook' })).toBeTruthy()
+  expect(screen.getByRole('status').textContent).toContain('Select a white piece')
+  promote('knight')
+  expect(screen.getByRole('status').textContent).toContain('e8=N# — checkmate!')
+  expect(screen.getByRole('button', { name: 'e8, white knight' })).toBeTruthy()
+})
+it('celebrates, fades, then closes once even when the parent rerenders', () => {
+  vi.useFakeTimers()
+  const onClose = vi.fn()
+  const { rerender } = render(<ChessPuzzle onClose={onClose} />)
+  promote('knight')
+  expect(screen.getByRole('dialog').classList.contains('is-solved')).toBe(true)
+  act(() => {
+    vi.advanceTimersByTime(1000)
+  })
+  const latestClose = vi.fn()
+  rerender(<ChessPuzzle onClose={latestClose} />)
+  act(() => {
+    vi.advanceTimersByTime(800)
+  })
+  expect(screen.getByRole('dialog').classList.contains('is-closing')).toBe(true)
+  expect(latestClose).not.toHaveBeenCalled()
+  act(() => {
+    vi.advanceTimersByTime(400)
+  })
+  expect(latestClose).toHaveBeenCalledOnce()
+  expect(onClose).not.toHaveBeenCalled()
+})
+it('cancels the automatic close when the modal is dismissed early', () => {
+  vi.useFakeTimers()
+  const onClose = vi.fn()
+  const { unmount } = render(<ChessPuzzle onClose={onClose} />)
+  promote('knight')
+  unmount()
+  act(() => {
+    vi.advanceTimersByTime(3000)
+  })
+  expect(onClose).not.toHaveBeenCalled()
 })
 it('supports hints and arrow-key board navigation without wrapping rows', () => {
   render(<ChessPuzzle onClose={() => {}} />)
   fireEvent.click(screen.getByRole('button', { name: 'Show hint' }))
-  expect(screen.getByText(/boxed in by its pawns/)).toBeTruthy()
-  const rook = screen.getByRole('button', { name: 'e1, white rook' })
+  expect(screen.getByText(/Which kind of check/)).toBeTruthy()
+  const rook = screen.getByRole('button', { name: 'a1, white queen' })
   rook.focus()
   fireEvent.keyDown(rook, { key: 'ArrowUp' })
-  expect(document.activeElement).toBe(screen.getByRole('button', { name: 'e2, empty' }))
+  expect(document.activeElement).toBe(screen.getByRole('button', { name: 'a2, empty' }))
   const edge = screen.getByRole('button', { name: 'a8, empty' })
   edge.focus()
   fireEvent.keyDown(edge, { key: 'ArrowLeft' })
