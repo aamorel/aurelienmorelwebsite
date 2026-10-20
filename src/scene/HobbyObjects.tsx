@@ -380,8 +380,20 @@ function RunningShoe() {
 
 export default memo(function HobbyObject({ kind }: { kind: Hobby }) {
   if (kind === 'saxophone') return <Saxophone />
-  if (kind === 'basketball') return <Basketball />
-  if (kind === 'volleyball') return <Volleyball />
+  if (kind === 'sports')
+    return (
+      <group>
+        <group position={[-0.78, 0, 0]} scale={0.43}>
+          <Basketball />
+        </group>
+        <group position={[0, 0, 0]} scale={0.43}>
+          <Volleyball />
+        </group>
+        <group position={[0.78, 0, 0]} scale={0.43}>
+          <RunningShoe />
+        </group>
+      </group>
+    )
   if (kind === 'chess') return <ChessKnight />
   return <RunningShoe />
 })

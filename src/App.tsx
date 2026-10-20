@@ -170,9 +170,7 @@ export default function App() {
           />
           <section className="scene-section" aria-label="Interactive robot workbench">
             <div className="scene-topline">
-              <span className="eyebrow">
-                FIG. 01 <span className="caption-divider">/</span> THE CURIOSITY DESK
-              </span>
+              <span className="eyebrow">THE CURIOSITY DESK</span>
               <span className="live-state">
                 <span
                   className={`status-dot ${navigation.mode === 'reaching' || playing || dancing || tracking ? 'busy' : ''}`}

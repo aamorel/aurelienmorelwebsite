@@ -53,7 +53,6 @@ export default function ContentPanel({ visible, mode, close, select, focusReques
           <section className="panel-content" key={content} aria-labelledby="section-heading">
             <div className="panel-topline">
               <span className="eyebrow">
-                {sections.find((section) => section.id === content)?.number} /{' '}
                 {sections.find((section) => section.id === content)?.object}
               </span>
               <button className="close-button" onClick={close} aria-label="Close section">
@@ -148,8 +147,8 @@ export default function ContentPanel({ visible, mode, close, select, focusReques
                 <p className="panel-lead">Co-founder & CTO of Typeless, acquired by Doctolib.</p>
                 <p>
                   We built Typeless from the first prototype to paid pilots, then sold the company
-                  to Doctolib in May 2024 for an undisclosed amount. I’m bringing that experience
-                  building and shipping AI systems back to robotics.
+                  to Doctolib in May 2024. I’m bringing that experience building and shipping AI
+                  systems back to robotics.
                 </p>
                 <div className="work-list">
                   {work.map((item) => (

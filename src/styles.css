@@ -1408,7 +1408,7 @@ nav a[aria-current]::after {
 }
 .hobbies-list {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   list-style: none;
   margin: 0;
   padding: 0;
@@ -1560,7 +1560,7 @@ nav a[aria-current]::after {
   .hobbies-list {
     height: 100%;
     grid-template-columns: 1fr;
-    grid-template-rows: repeat(5, minmax(0, 1fr));
+    grid-template-rows: repeat(3, minmax(0, 1fr));
   }
   .hobbies-list li {
     height: auto;

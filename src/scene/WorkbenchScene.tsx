@@ -393,7 +393,6 @@ function DeskObject({ id, props, children }: { id: Section; props: Props; childr
           onFocus={() => props.setHovered(id)}
           onBlur={() => props.setHovered(null)}
         >
-          <span className="label-number">{section.number}</span>
           {section.label}
           {selected ? <CheckIcon /> : <ArrowIcon diagonal />}
         </a>

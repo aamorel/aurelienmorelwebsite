@@ -70,13 +70,7 @@ describe('accessible HTML shell', () => {
     render(<App />)
     await screen.findByTestId('scene')
     const names = within(screen.getByRole('list', { name: 'My hobbies' })).getAllByRole('listitem')
-    expect(names.map((item) => item.textContent)).toEqual([
-      '01Saxophone',
-      '02Basketball',
-      '03Volleyball',
-      '04Chess',
-      '05Running',
-    ])
+    expect(names.map((item) => item.textContent)).toEqual(['Saxophone', 'Sports', 'Chess'])
     fireEvent.click(within(screen.getByRole('navigation')).getByRole('link', { name: 'Work' }))
     expect(screen.getByRole('heading', { name: 'What I bring back.' })).toBeTruthy()
   })

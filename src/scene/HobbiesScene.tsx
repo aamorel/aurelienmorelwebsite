@@ -23,14 +23,13 @@ function DisplayItem({
   const item = useRef<Group>(null!)
   const { size, invalidate } = useThree()
   const columns = compact ? 3 : 1
-  const rows = compact ? 2 : 5
-  const row = compact ? (index > 2 ? 1 : 0) : index
-  // Centre the pair in the second row, matching the HTML labels.
-  const column = compact ? (row ? index - 3 + 0.5 : index) : 0
+  const rows = compact ? 1 : hobbies.length
+  const row = compact ? 0 : index
+  const column = compact ? index : 0
   const cellWidth = size.width / columns
   const cellHeight = size.height / rows
   const scale = compact
-    ? Math.min(cellWidth * 0.54, 80)
+    ? Math.min(cellWidth * (kind === 'sports' ? 0.39 : 0.54), 80)
     : Math.min(cellWidth * 0.38, (cellHeight - 24) / 1.7, 56)
   useLayoutEffect(() => {
     root.current.position.set(

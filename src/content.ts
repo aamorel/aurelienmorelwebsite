@@ -1,5 +1,5 @@
 // Career facts: user-supplied Aurelien_Morel_Resume.pdf and subsequent clarifications.
-// Typeless sale to Doctolib for an undisclosed amount: confirmed by Aurélien.
+// Typeless sale to Doctolib: confirmed by Aurélien.
 // Return-to-robotics positioning: Aurélien's stated direction.
 // Publication summaries and links: the IEEE/arXiv records linked below.
 export const profile = {
@@ -25,7 +25,7 @@ export const education = [
     dates: '2022 – 2023',
     detail:
       'Research on self-reconfigurable modular robots, with a focus on collaborative object manipulation, transport, and handover to people. First-author publication at IEEE RO-MAN 2023.',
-    note: 'Left the PhD to co-found Typeless in 2023.',
+    note: 'Dropped out of the PhD to co-found Typeless in 2023.',
     featured: true,
   },
   {
@@ -86,7 +86,7 @@ export const work = [
     dates: '2023 – May 2024',
     description:
       'Co-founded a four-person startup and built the initial product end to end, from models and APIs to frontend prototypes. Led product development and customer pilots, raised pre-seed funding, and secured paid pilots.',
-    context: 'Acquired by Doctolib in May 2024 for an undisclosed amount.',
+    context: 'Acquired by Doctolib in May 2024.',
     tags: ['Prototyping', 'Product engineering', 'Startup building'],
   },
   {
@@ -102,10 +102,8 @@ export const work = [
 
 export const hobbies = [
   { id: 'saxophone', label: 'Saxophone' },
-  { id: 'basketball', label: 'Basketball' },
-  { id: 'volleyball', label: 'Volleyball' },
+  { id: 'sports', label: 'Sports' },
   { id: 'chess', label: 'Chess' },
-  { id: 'running', label: 'Running' },
 ] as const
 export type Hobby = (typeof hobbies)[number]['id']
 

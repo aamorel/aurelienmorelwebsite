@@ -64,9 +64,13 @@ export default memo(function Hobbies({
             </HobbyBoundary>
           </div>
           <ul className="hobbies-list" aria-label="My hobbies" role="list">
-            {hobbies.map((hobby, index) => (
+            {hobbies.map((hobby) => (
               <li
                 key={hobby.id}
+                aria-label={
+                  hobby.id === 'sports' ? 'Sports: basketball, volleyball, running' : undefined
+                }
+                title={hobby.id === 'sports' ? 'Basketball, volleyball, running' : undefined}
                 onPointerEnter={() => setHovered(hobby.id)}
                 onPointerLeave={() => setHovered(null)}
               >
@@ -79,12 +83,7 @@ export default memo(function Hobbies({
                     onBlur={() => setHovered(null)}
                   />
                 )}
-                <span className="hobby-caption">
-                  <span className="hobby-number" aria-hidden="true">
-                    0{index + 1}
-                  </span>
-                  {hobby.label}
-                </span>
+                <span className="hobby-caption">{hobby.label}</span>
               </li>
             ))}
           </ul>
