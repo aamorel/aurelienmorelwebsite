@@ -3,7 +3,30 @@ import { Chess, type Square } from 'chess.js'
 
 export const PUZZLE_FEN = '8/b3Ppp1/2n1pkp1/6p1/1B2K3/8/1r6/Q7 w - - 0 1'
 const names = { k: 'king', q: 'queen', r: 'rook', b: 'bishop', n: 'knight', p: 'pawn' }
-const glyphs = { k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟' }
+// Vector silhouettes keep the pieces consistent on mobile, including iOS.
+const piecePaths = {
+  p: 'M18 37h12l-2-5-2-8a6 6 0 1 0-4 0l-2 8z',
+  r: 'M14 10h5v5h3v-5h4v5h3v-5h5v11l-5 3 1 12H18l1-12-5-3z',
+  n: 'M15 36l2-10 10-8-6 1-5 5-5-4 6-10 9-3-1 5c9 3 11 12 8 24z M19 16h1',
+  b: 'M18 36l3-9c-10-7-4-13 3-19 7 6 13 12 3 19l3 9z M24 13l-4 7',
+  q: 'M16 35l-4-19 9 7 3-13 3 13 9-7-4 19z M11 12h2 M23 7h2 M35 12h2',
+  k: 'M18 36l1-10c-10-8-3-16 5-10 8-6 15 2 5 10l1 10z M24 6v10 M20 10h8',
+}
+function Piece({ type, color }: { type: keyof typeof names; color: 'w' | 'b' }) {
+  return (
+    <svg
+      viewBox="0 0 48 48"
+      aria-hidden="true"
+      focusable="false"
+      className={`chess-piece ${color === 'w' ? 'white' : 'black'}`}
+    >
+      <g strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d={piecePaths[type]} />
+        <path d="M15 37h18l2 5H13z" />
+      </g>
+    </svg>
+  )
+}
 const squares = Array.from(
   { length: 64 },
   (_, i) => `${'abcdefgh'[i % 8]}${8 - Math.floor(i / 8)}` as Square,
@@ -158,14 +181,7 @@ export default function ChessPuzzle({ onClose }: { onClose: () => void }) {
                 buttons[next].focus()
               }}
             >
-              {piece && (
-                <span
-                  aria-hidden="true"
-                  className={`chess-piece ${piece.color === 'w' ? 'white' : 'black'}`}
-                >
-                  {glyphs[piece.type]}
-                </span>
-              )}
+              {piece && <Piece type={piece.type} color={piece.color} />}
               {index % 8 === 0 && (
                 <span aria-hidden="true" className="chess-rank">
                   {square[1]}
@@ -193,7 +209,7 @@ export default function ChessPuzzle({ onClose }: { onClose: () => void }) {
               onClick={() => attemptMove(promotion, piece)}
               aria-label={`Promote to ${names[piece]}`}
             >
-              <span aria-hidden="true">{glyphs[piece]}</span>
+              <Piece type={piece} color="w" />
               {names[piece]}
             </button>
           ))}
