@@ -5,6 +5,7 @@ import {
   useCallback,
   useEffect,
   useRef,
+  useMemo,
   useState,
   type ErrorInfo,
   type ReactNode,
@@ -20,6 +21,16 @@ import ContentPanel from './ContentPanel'
 import Hobbies from './Hobbies'
 import ChessPuzzle from './ChessPuzzle'
 import RoboticsLab from './RoboticsLab'
+import IllustrativeLab from './IllustrativeLab'
+import ExperimentWorkbench from './ExperimentWorkbench'
+import {
+  EXPERIMENTS,
+  INITIAL_EXPERIMENT_SETTINGS,
+  type ExperimentId,
+  type ExperimentSettings,
+} from './experiments'
+import { deriveExperiment } from './experimentModels'
+import { useExperimentPlayer } from './useExperimentPlayer'
 import { EMPTY_LAB, type LabRequest, type LabSnapshot } from './lab'
 
 const WorkbenchScene = lazy(() => import('./scene/WorkbenchScene'))
@@ -99,7 +110,41 @@ export default function App() {
     setLabSnapshot({ ...EMPTY_LAB })
   }, [navigation.revision])
   const [experimentOpen, setExperimentOpen] = useState(false)
-  const experimentButton = useRef<HTMLButtonElement>(null)
+  const [experimentId, setExperimentId] = useState<'chunking' | ExperimentId>('chunking')
+  const [experimentSettings, setExperimentSettings] = useState<ExperimentSettings>({
+    ...INITIAL_EXPERIMENT_SETTINGS,
+  })
+  const illustrationOpen =
+    experimentOpen && experimentId !== 'chunking' && navigation.selected === 'lab'
+  const player = useExperimentPlayer(
+    illustrationOpen ? experimentId : null,
+    experimentSettings.revision,
+    !motionPaused && sceneVisible && !chessOpen,
+    reducedMotion,
+  )
+  const experimentFrame = useMemo(
+    () =>
+      deriveExperiment(
+        experimentId === 'chunking' ? 'planning' : experimentId,
+        experimentSettings,
+        player.progress,
+      ),
+    [experimentId, experimentSettings, player.progress],
+  )
+  const openExperiment = (id: 'chunking' | ExperimentId, button: HTMLButtonElement) => {
+    experimentButton.current = button
+    setLabRequest(null)
+    setLabSnapshot({ ...EMPTY_LAB })
+    setExperimentSettings({ ...INITIAL_EXPERIMENT_SETTINGS, intervention: id === 'planning' })
+    setExperimentId(id)
+    setExperimentOpen(true)
+  }
+  const closeExperiment = () => {
+    setLabRequest(null)
+    setExperimentOpen(false)
+    resetLab()
+  }
+  const experimentButton = useRef<HTMLButtonElement | null>(null)
   const wasExperimentOpen = useRef(false)
   useEffect(() => {
     if (wasExperimentOpen.current && !experimentOpen)
@@ -218,7 +263,7 @@ export default function App() {
             <h1 id="lab-heading" ref={labHeading} tabIndex={-1}>
               The robotics lab<span>.</span>
             </h1>
-            <p>Pick a question. Try it on the arm. See what changes.</p>
+            <p>Seven questions. Change one thing. See what the robot does.</p>
           </section>
         ) : (
           <section className="introduction" aria-labelledby="site-heading">
@@ -278,7 +323,11 @@ export default function App() {
               </span>
             </div>
             <div className={`scene-viewport ${tracking ? 'is-tracking' : ''}`} ref={sceneRegion}>
-              <div className="scene-renderer">
+              <div
+                className={`scene-renderer ${illustrationOpen ? 'is-illustration-hidden' : ''}`}
+                aria-hidden={illustrationOpen}
+                inert={illustrationOpen}
+              >
                 <SceneBoundary onFailure={onFailure}>
                   <Suspense fallback={<SceneFallback />}>
                     <WorkbenchScene
@@ -294,7 +343,7 @@ export default function App() {
                       setHovered={setHovered}
                       select={select}
                       motionEnabled={!reducedMotion && !motionPaused}
-                      active={sceneVisible && !chessOpen}
+                      active={sceneVisible && !chessOpen && !illustrationOpen}
                       onReady={onReady}
                       onFailure={onFailure}
                       behaviorRequest={behaviorRequest}
@@ -330,19 +379,26 @@ export default function App() {
                   ))}
                 </div>
               )}
+              {illustrationOpen && (
+                <ExperimentWorkbench
+                  id={experimentId}
+                  settings={experimentSettings}
+                  progress={player.progress}
+                  frame={experimentFrame}
+                />
+              )}
               {labOpen && (
                 <div
-                  className={`experiment-vignettes ${experimentOpen ? 'is-selected' : ''}`}
+                  className={`experiment-vignettes experiment-catalog ${experimentOpen ? 'is-selected' : ''}`}
                   hidden={experimentOpen}
                   inert={experimentOpen}
                   aria-label="Choose an experiment"
                 >
                   <button
-                    ref={experimentButton}
                     className="experiment-vignette"
                     aria-expanded={experimentOpen}
                     aria-controls="lab-experiment"
-                    onClick={() => setExperimentOpen(true)}
+                    onClick={(event) => openExperiment('chunking', event.currentTarget)}
                   >
                     <span className="vignette-art" aria-hidden="true">
                       <i />
@@ -357,11 +413,34 @@ export default function App() {
                     <span>One action, or a plan ahead?</span>
                     <span className="vignette-link">Explore experiment ↗</span>
                   </button>
-                  {!experimentOpen && (
-                    <div className="lab-future-note">
-                      <span>+</span> More experiments will join the bench.
-                    </div>
-                  )}
+                  {EXPERIMENTS.map((experiment) => (
+                    <button
+                      key={experiment.id}
+                      className={`experiment-vignette vignette-${experiment.id}`}
+                      aria-expanded={false}
+                      aria-controls="lab-experiment"
+                      onClick={(event) => openExperiment(experiment.id, event.currentTarget)}
+                    >
+                      <span className="vignette-symbol" aria-hidden="true">
+                        {
+                          {
+                            planning: '↝',
+                            compliance: '↔',
+                            averaging: '⑂',
+                            reward: '◎',
+                            perception: '◉',
+                            grasps: '⋈',
+                          }[experiment.id]
+                        }
+                      </span>
+                      <span className="eyebrow">
+                        {experiment.number} · {experiment.category}
+                      </span>
+                      <strong>{experiment.title}</strong>
+                      <span>{experiment.question}</span>
+                      <span className="vignette-link">Explore experiment ↗</span>
+                    </button>
+                  ))}
                 </div>
               )}
               <div className="scene-corner corner-tl" />
@@ -371,7 +450,11 @@ export default function App() {
               <span className="scene-hint">
                 <span aria-hidden="true">↖</span>
                 {labOpen
-                  ? 'Choose an experiment to begin.'
+                  ? illustrationOpen
+                    ? player.running
+                      ? 'Watch the result. Change one thing. Compare.'
+                      : 'Change an approach or replay the experiment.'
+                    : 'Choose an experiment to begin.'
                   : tracking
                     ? 'Move your mouse over the bench.'
                     : 'Pick an object. Follow your curiosity.'}
@@ -433,33 +516,52 @@ export default function App() {
           </section>
           {labOpen ? (
             experimentOpen ? (
-              <RoboticsLab
-                close={() => {
-                  setLabRequest(null)
-                  setExperimentOpen(false)
-                  resetLab()
-                }}
-                request={labRequest}
-                snapshot={labSnapshot}
-                available={
-                  sceneReady &&
-                  !sceneFailed &&
-                  sceneVisible &&
-                  !reducedMotion &&
-                  !motionPaused &&
-                  !chessOpen
-                }
-                run={(chunk, delay) => {
-                  setLabSnapshot({ ...EMPTY_LAB })
-                  setLabRequest((previous) => ({
-                    chunk,
-                    delay,
-                    revision: (previous?.revision ?? 0) + 1,
-                  }))
-                }}
-                moveTarget={() => setLabTargetRevision((previous) => previous + 1)}
-                stop={resetLab}
-              />
+              illustrationOpen ? (
+                <IllustrativeLab
+                  key={experimentId}
+                  id={experimentId}
+                  settings={experimentSettings}
+                  onSettings={setExperimentSettings}
+                  progress={player.progress}
+                  running={player.running}
+                  frame={experimentFrame}
+                  onRun={player.replay}
+                  onReset={() => {
+                    setExperimentSettings({
+                      ...INITIAL_EXPERIMENT_SETTINGS,
+                      intervention: experimentId === 'planning',
+                      revision: experimentSettings.revision + 1,
+                    })
+                    player.replay()
+                  }}
+                  close={closeExperiment}
+                  reducedMotion={reducedMotion}
+                />
+              ) : (
+                <RoboticsLab
+                  close={closeExperiment}
+                  request={labRequest}
+                  snapshot={labSnapshot}
+                  available={
+                    sceneReady &&
+                    !sceneFailed &&
+                    sceneVisible &&
+                    !reducedMotion &&
+                    !motionPaused &&
+                    !chessOpen
+                  }
+                  run={(chunk, delay) => {
+                    setLabSnapshot({ ...EMPTY_LAB })
+                    setLabRequest((previous) => ({
+                      chunk,
+                      delay,
+                      revision: (previous?.revision ?? 0) + 1,
+                    }))
+                  }}
+                  moveTarget={() => setLabTargetRevision((previous) => previous + 1)}
+                  stop={resetLab}
+                />
+              )
             ) : null
           ) : (
             <ContentPanel {...navigation} select={select} />

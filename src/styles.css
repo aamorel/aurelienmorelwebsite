@@ -2418,3 +2418,212 @@ nav a[aria-current]::after {
     translate: -40px 0;
   }
 }
+
+/* A browsable lab, with one question per experiment. */
+.has-lab:not(.has-panel) .scene-section {
+  height: auto;
+  min-height: 560px;
+}
+.experiment-catalog:not([hidden]) {
+  position: relative;
+  inset: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  padding: 20px 12px 32px;
+  background: var(--paper);
+  pointer-events: auto;
+}
+.experiment-catalog[hidden] {
+  display: none;
+}
+.experiment-catalog .experiment-vignette {
+  position: relative;
+  top: auto;
+  left: auto;
+  width: auto;
+  min-height: 224px;
+  padding: 20px;
+  gap: 12px;
+}
+.experiment-catalog .eyebrow {
+  font-size: 8px;
+  line-height: 1.7;
+}
+.experiment-catalog .vignette-art {
+  height: 36px;
+}
+.experiment-catalog .vignette-symbol {
+  display: flex;
+  align-items: center;
+  height: 36px;
+  color: var(--green) !important;
+  font: 36px var(--serif) !important;
+}
+.scene-renderer.is-illustration-hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+.illustrative-lab .lab-lesson-label {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.illustrative-lab .lab-lesson-label > .eyebrow {
+  width: 100%;
+}
+.illustrative-lab .lab-modes button,
+.lab-intervention-button,
+.illustrative-lab .lab-actions button {
+  min-height: 44px;
+}
+.lab-control-note {
+  font-size: 11px !important;
+  margin-top: -12px;
+  color: var(--muted);
+}
+.lab-intervention-button {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  color: #925131;
+  background: #bd714e0c;
+  font-size: 13px;
+}
+.lab-intervention-button[aria-pressed='true'] {
+  background: #bd714e1d;
+}
+.experiment-progress {
+  width: 100%;
+  height: 4px;
+  accent-color: var(--green);
+}
+.experiment-status {
+  min-height: 52px;
+  font-size: 13px;
+}
+.experiment-monitor.outcome-blocked {
+  border-color: #bd714e60;
+}
+.experiment-takeaway {
+  margin: 24px 0;
+  padding: 16px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.experiment-takeaway p {
+  margin-bottom: 0;
+  color: var(--green);
+}
+@media (max-width: 760px) {
+  .experiment-catalog:not([hidden]) {
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    padding: 12px 18px 24px;
+  }
+  .experiment-catalog .experiment-vignette {
+    min-height: 190px;
+  }
+  .has-lab.has-panel:has(.illustrative-lab) .scene-section {
+    height: 410px;
+  }
+  .has-lab.has-panel:has(.illustrative-lab) .scene-viewport {
+    margin: 0 -8px;
+  }
+}
+.experiment-workbench {
+  position: absolute;
+  inset: 0;
+}
+.illustrative-lab .lab-lesson-label {
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+.illustrative-lab .lab-experiment-heading {
+  flex: 1;
+  min-width: 100px;
+}
+.illustrative-lab .lab-modes {
+  margin-bottom: 8px;
+}
+.illustrative-lab .lab-modes button,
+.lab-intervention-button {
+  min-height: 44px;
+}
+.lab-control-note {
+  font-size: 11px;
+  color: var(--muted);
+}
+.lab-intervention-button {
+  padding: 10px 16px;
+  border: 1px solid #aebc9f;
+  border-radius: 6px;
+  color: var(--green);
+  background: #e8eadd;
+  font-size: 13px;
+  width: 100%;
+}
+.lab-intervention-button[aria-pressed='true'] {
+  background: #f0dfcd;
+  border-color: #bb916f;
+  color: #795337;
+}
+.experiment-status {
+  min-height: 54px;
+}
+.experiment-progress {
+  width: 100%;
+  height: 5px;
+  accent-color: var(--green);
+}
+.experiment-takeaway {
+  border-left: 2px solid var(--accent);
+  padding: 4px 0 4px 16px;
+  margin: 24px 0;
+}
+.experiment-takeaway p {
+  margin: 8px 0 0;
+}
+@media (max-width: 760px) {
+  .experiment-catalog:not([hidden]) {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 16px 20px 28px;
+    gap: 12px;
+  }
+  .experiment-catalog .experiment-vignette {
+    min-height: 190px;
+    padding: 18px;
+  }
+  .has-lab.has-panel:has(.illustrative-lab) .scene-section {
+    position: sticky;
+    top: 0;
+    z-index: 35;
+    height: 56svh;
+    min-height: 350px;
+    max-height: 400px;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+  }
+  .has-lab.has-panel:has(.illustrative-lab) .scene-topline {
+    height: 28px;
+    flex-shrink: 0;
+  }
+  .has-lab.has-panel:has(.illustrative-lab) .scene-bottomline {
+    padding: 0;
+    min-height: 44px;
+  }
+  .has-lab.has-panel:has(.illustrative-lab) .scene-hint {
+    display: none;
+  }
+  .illustrative-lab .panel-content {
+    padding-top: 20px;
+  }
+}
+@media (max-width: 760px) {
+  .illustrative-lab button,
+  .illustrative-lab input,
+  .illustrative-lab summary,
+  .illustrative-lab h2 {
+    scroll-margin-top: calc(clamp(350px, 56svh, 400px) + 20px);
+    scroll-margin-bottom: 20px;
+  }
+}

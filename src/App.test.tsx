@@ -272,3 +272,46 @@ describe('focused lab navigation', () => {
     expect(screen.getByTestId('scene')).toBe(canvas)
   })
 })
+
+it('opens all six illustrative experiments and returns focus to their catalog cards', async () => {
+  scene.reduced = true
+  window.history.replaceState(null, '', '/#lab')
+  render(<App />)
+  const canvas = await screen.findByTestId('scene')
+  for (const title of [
+    'Find a way around',
+    'Give a little',
+    'Two rights, one wrong',
+    'Mind the score',
+    'Look before reaching',
+    'Another way to hold it',
+  ]) {
+    const card = screen.getByRole('button', { name: new RegExp(title) })
+    fireEvent.click(card)
+    expect(screen.getByRole('heading', { name: title })).toBeTruthy()
+    expect(screen.getByRole('group', { name: 'Compare approaches' })).toBeTruthy()
+    expect(screen.getByTestId('scene')).toBe(canvas)
+    fireEvent.click(screen.getByRole('button', { name: 'Back to experiments' }))
+    expect(document.activeElement).toBe(card)
+  }
+  expect(screen.getByRole('button', { name: /Action chunking/ })).toBeTruthy()
+})
+
+it('keeps illustrative comparisons usable without WebGL and with reduced motion', async () => {
+  scene.reduced = true
+  scene.fail = true
+  vi.spyOn(console, 'error').mockImplementation(() => {})
+  window.history.replaceState(null, '', '/#lab')
+  render(<App />)
+  fireEvent.click(await screen.findByRole('button', { name: /Find a way around/ }))
+  expect(screen.getAllByText(/direct move cannot continue/).length).toBeGreaterThan(0)
+  fireEvent.click(screen.getByRole('button', { name: 'Plan a route' }))
+  await waitFor(() =>
+    expect(screen.getAllByText(/planned route clears the obstacle/).length).toBeGreaterThan(0),
+  )
+  expect(
+    screen.getByRole('progressbar', { name: 'Experiment progress' }).getAttribute('value'),
+  ).toBe('1')
+  fireEvent.click(screen.getByRole('button', { name: 'Remove obstacle' }))
+  expect(screen.getAllByText(/no obstacle, the direct route works/).length).toBeGreaterThan(0)
+})
