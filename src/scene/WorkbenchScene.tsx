@@ -1,8 +1,9 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Canvas, useThree, type ThreeEvent } from '@react-three/fiber'
-import { Line, RoundedBox } from '@react-three/drei'
+import { Html, Line, RoundedBox } from '@react-three/drei'
 import { Group, MeshStandardMaterial, OrthographicCamera, Vector3 } from 'three'
-import type { Section } from '../content'
+import { sections, type Section } from '../content'
+import { ArrowIcon, CheckIcon } from '../Icons'
 import type { Mode } from '../useNavigation'
 import RobotArm from './RobotArm'
 import type { ArmPhase, BehaviorRequest } from './motion'
@@ -39,16 +40,16 @@ type Props = {
   onTrackTimeChange: (seconds: number) => void
 }
 
-function CameraRig() {
+function CameraRig({ labMode }: { labMode?: boolean }) {
   const { camera, size, invalidate } = useThree()
   useLayoutEffect(() => {
     const orthographic = camera as OrthographicCamera
     orthographic.position.set(4.8, 6.4, 8.8)
-    orthographic.lookAt(new Vector3(-0.25, 0.75, 0))
-    orthographic.zoom = Math.min(size.width / 7.4, size.height / 5.2)
+    orthographic.lookAt(new Vector3(-0.25, labMode ? 0.75 : 0.05, 0))
+    orthographic.zoom = Math.min(size.width / 7.4, size.height / (labMode ? 5.2 : 4.4))
     orthographic.updateProjectionMatrix()
     invalidate()
-  }, [camera, size, invalidate])
+  }, [camera, size, invalidate, labMode])
   return null
 }
 
@@ -356,6 +357,7 @@ function Papers(props: SelectionProps) {
 function DeskObject({ id, props, children }: { id: Section; props: Props; children: ReactNode }) {
   const selected = props.selected === id
   const highlighted = props.hovered === id || selected
+  const section = sections.find((entry) => entry.id === id)!
   const hover = (event: ThreeEvent<PointerEvent>) => {
     event.stopPropagation()
     props.setHovered(id)
@@ -381,6 +383,26 @@ function DeskObject({ id, props, children }: { id: Section; props: Props; childr
           />
         </mesh>
       </group>
+      <Html position={TARGETS[id].label} center zIndexRange={[20, 0]}>
+        <a
+          href={`#${id}`}
+          className={`scene-label object-label object-label-${id} ${highlighted ? 'highlighted' : ''}`}
+          aria-current={selected ? 'page' : undefined}
+          onClick={(event) => {
+            event.stopPropagation()
+            if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+            event.preventDefault()
+            props.select(id, event.currentTarget)
+          }}
+          onPointerEnter={() => props.setHovered(id)}
+          onPointerLeave={() => props.setHovered(null)}
+          onFocus={() => props.setHovered(id)}
+          onBlur={() => props.setHovered(null)}
+        >
+          {section.label}
+          {selected ? <CheckIcon /> : <ArrowIcon diagonal />}
+        </a>
+      </Html>
     </>
   )
 }
@@ -431,7 +453,7 @@ export default function WorkbenchScene(props: Props) {
         <div className="scene-fallback">3D is unavailable. Please use the section links.</div>
       }
     >
-      <CameraRig />
+      <CameraRig labMode={props.labMode} />
       <ContextMonitor onReady={props.onReady} onFailure={failure} />
       <ambientLight intensity={1.7} />
       <hemisphereLight args={['#fff6df', '#9b9f83', 1.5]} />

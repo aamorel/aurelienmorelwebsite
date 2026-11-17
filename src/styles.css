@@ -2325,13 +2325,10 @@ nav a[aria-current]::after {
   flex-shrink: 0;
 }
 
-/* Labels occupy their own gutters, outside the rendered desk at every width. */
+/* The canvas fills the scene; only the no-WebGL fallback uses corner links. */
 .scene-renderer {
   position: absolute;
   inset: 0;
-}
-.scene-renderer.with-label-gutters {
-  inset: 54px 0;
 }
 .bench-labels {
   position: absolute;
@@ -2376,5 +2373,38 @@ nav a[aria-current]::after {
 @media (max-width: 760px) {
   .bench-labels {
     padding: 0 20px;
+  }
+}
+
+/* World-space anchors sit just beyond the desk edge, beside each object. */
+.object-label {
+  padding: 8px 10px;
+  font-size: 11px;
+}
+.object-label-lab,
+.object-label-work {
+  top: -36px;
+}
+.object-label-education,
+.object-label-publications {
+  top: 40px;
+}
+.object-label::before {
+  height: 8px;
+}
+.object-label-lab::before,
+.object-label-work::before {
+  top: 100%;
+  bottom: auto;
+}
+@media (max-width: 760px) {
+  .object-label {
+    padding: 8px;
+    font-size: 9px;
+    gap: 4px;
+  }
+  .object-label-lab,
+  .object-label-work {
+    top: -42px;
   }
 }

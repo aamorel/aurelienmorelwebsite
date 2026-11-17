@@ -34,7 +34,7 @@ export const TARGETS: Record<
 > = {
   lab: {
     position: [-1.65, 0, -0.85],
-    label: [-1.8, 0.04, -0.3],
+    label: [-1.65, 0.04, -2.02],
     rotation: 0.1,
     approach: [...SAFE],
     touch: [...SAFE],
@@ -42,7 +42,7 @@ export const TARGETS: Record<
   },
   education: {
     position: [-1.5, 0, 0.7],
-    label: [-1.7, 0.03, 1.38],
+    label: [-1.5, 0.03, 2.02],
     rotation: -0.15,
     approach: [-2.4275, -1.0532, -0.6875, -1.4009, 0, 0.13],
     touch: [-2.4275, -1.1482, -0.782, -1.2114, 0, 0.09],
@@ -50,7 +50,7 @@ export const TARGETS: Record<
   },
   work: {
     position: [1.43, 0, -0.65],
-    label: [1.85, 0.05, -0.13],
+    label: [1.43, 0.05, -2.02],
     rotation: 0.2,
     approach: [0.035, -0.4103, -1.3972, -1.3341, 0, 0.13],
     touch: [0.035, -0.4973, -1.5636, -1.0807, 0, 0.09],
@@ -58,7 +58,7 @@ export const TARGETS: Record<
   },
   publications: {
     position: [0.85, 0, 1],
-    label: [0.85, 0.02, 1.64],
+    label: [0.85, 0.02, 2.02],
     rotation: 0.12,
     approach: [-1.0825, -0.9009, -1.0967, -1.1439, 0, 0.13],
     touch: [-1.0825, -1.0344, -1.14, -0.9671, 0, 0.09],

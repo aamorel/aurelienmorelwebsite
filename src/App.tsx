@@ -278,7 +278,7 @@ export default function App() {
               </span>
             </div>
             <div className={`scene-viewport ${tracking ? 'is-tracking' : ''}`} ref={sceneRegion}>
-              <div className={`scene-renderer ${labOpen ? '' : 'with-label-gutters'}`}>
+              <div className="scene-renderer">
                 <SceneBoundary onFailure={onFailure}>
                   <Suspense fallback={<SceneFallback />}>
                     <WorkbenchScene
@@ -305,7 +305,7 @@ export default function App() {
                   </Suspense>
                 </SceneBoundary>
               </div>
-              {!labOpen && (
+              {!labOpen && (!sceneReady || sceneFailed) && (
                 <div className="bench-labels" aria-label="Workbench objects">
                   {sections.map((section) => (
                     <a
