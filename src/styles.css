@@ -2408,3 +2408,8 @@ nav a[aria-current]::after {
     top: -42px;
   }
 }
+
+/* Keep the nearby lab label clear of the disco globe during the dance. */
+.object-label-lab.is-dancing {
+  translate: -40px 0;
+}

@@ -298,6 +298,7 @@ export default function App() {
                       onReady={onReady}
                       onFailure={onFailure}
                       behaviorRequest={behaviorRequest}
+                      armPhase={armPhase}
                       onPhaseChange={setArmPhase}
                       trackEnabled={canTrack}
                       onTrackTimeChange={setTrackSeconds}

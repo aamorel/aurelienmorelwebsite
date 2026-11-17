@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Canvas, useThree, type ThreeEvent } from '@react-three/fiber'
 import { Html, Line, RoundedBox } from '@react-three/drei'
-import { Group, MeshStandardMaterial, OrthographicCamera, Vector3 } from 'three'
+import { Group, MeshStandardMaterial, OrthographicCamera } from 'three'
 import { sections, type Section } from '../content'
 import { ArrowIcon, CheckIcon } from '../Icons'
 import type { Mode } from '../useNavigation'
@@ -10,6 +10,7 @@ import type { ArmPhase, BehaviorRequest } from './motion'
 import type { LabRequest, LabSnapshot } from '../lab'
 import { TARGETS } from './config'
 import { palette } from './palette'
+import { frameWorkbench, type ActionFraming } from './cameraFraming'
 import { useSelectionAnimation, type SelectionProps } from './useSelectionAnimation'
 
 const wood = new MeshStandardMaterial({ color: '#c99e70', roughness: 0.85 })
@@ -20,6 +21,7 @@ const orange = new MeshStandardMaterial({ color: palette.clay, roughness: 0.6 })
 
 type Props = {
   labMode?: boolean
+  armPhase: ArmPhase
   labExperimentOpen?: boolean
   labRequest?: LabRequest | null
   labTargetRevision?: number
@@ -40,16 +42,22 @@ type Props = {
   onTrackTimeChange: (seconds: number) => void
 }
 
-function CameraRig({ labMode }: { labMode?: boolean }) {
+function CameraRig({ labMode, armPhase }: { labMode?: boolean; armPhase: ArmPhase }) {
   const { camera, size, invalidate } = useThree()
+  const [action, setAction] = useState<ActionFraming>(null)
+  useEffect(() => {
+    if (armPhase === 'playing' || armPhase === 'dancing') {
+      setAction(armPhase)
+      return
+    }
+    // Keep the extra room while the hoop or globe fades away.
+    const timeout = window.setTimeout(() => setAction(null), 750)
+    return () => window.clearTimeout(timeout)
+  }, [armPhase])
   useLayoutEffect(() => {
-    const orthographic = camera as OrthographicCamera
-    orthographic.position.set(4.8, 6.4, 8.8)
-    orthographic.lookAt(new Vector3(-0.25, labMode ? 0.75 : 0.05, 0))
-    orthographic.zoom = Math.min(size.width / 7.4, size.height / (labMode ? 5.2 : 4.4))
-    orthographic.updateProjectionMatrix()
+    frameWorkbench(camera as OrthographicCamera, size.width, size.height, !!labMode, action)
     invalidate()
-  }, [camera, size, invalidate, labMode])
+  }, [camera, size, invalidate, labMode, action])
   return null
 }
 
@@ -386,7 +394,7 @@ function DeskObject({ id, props, children }: { id: Section; props: Props; childr
       <Html position={TARGETS[id].label} center zIndexRange={[20, 0]}>
         <a
           href={`#${id}`}
-          className={`scene-label object-label object-label-${id} ${highlighted ? 'highlighted' : ''}`}
+          className={`scene-label object-label object-label-${id} ${props.armPhase === 'dancing' ? 'is-dancing' : ''} ${highlighted ? 'highlighted' : ''}`}
           aria-current={selected ? 'page' : undefined}
           onClick={(event) => {
             event.stopPropagation()
@@ -453,7 +461,7 @@ export default function WorkbenchScene(props: Props) {
         <div className="scene-fallback">3D is unavailable. Please use the section links.</div>
       }
     >
-      <CameraRig labMode={props.labMode} />
+      <CameraRig labMode={props.labMode} armPhase={props.armPhase} />
       <ContextMonitor onReady={props.onReady} onFailure={failure} />
       <ambientLight intensity={1.7} />
       <hemisphereLight args={['#fff6df', '#9b9f83', 1.5]} />
