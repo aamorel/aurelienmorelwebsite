@@ -394,7 +394,7 @@ function DeskObject({ id, props, children }: { id: Section; props: Props; childr
       <Html position={TARGETS[id].label} center zIndexRange={[20, 0]}>
         <a
           href={`#${id}`}
-          className={`scene-label object-label object-label-${id} ${props.armPhase === 'dancing' ? 'is-dancing' : ''} ${highlighted ? 'highlighted' : ''}`}
+          className={`scene-label object-label object-label-${id} ${highlighted ? 'highlighted' : ''}`}
           aria-current={selected ? 'page' : undefined}
           onClick={(event) => {
             event.stopPropagation()
