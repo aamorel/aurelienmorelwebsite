@@ -2281,3 +2281,13 @@ nav a[aria-current]::after {
     animation: none;
   }
 }
+
+.lab-panel .lab-experiment-heading {
+  font: 19px var(--serif);
+  margin: 0;
+  letter-spacing: 0;
+}
+.lab-lesson-label > .close-button {
+  margin-left: auto;
+  flex-shrink: 0;
+}

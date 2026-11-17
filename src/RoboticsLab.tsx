@@ -48,18 +48,14 @@ export default function RoboticsLab({
     >
       <div className="panel-scroll">
         <section className="panel-content">
-          <div className="panel-topline">
-            <span className="eyebrow">THE EXPERIMENT CONSOLE</span>
+          <div className="lab-lesson-label">
+            <span className="eyebrow">EXPERIMENT 01</span>
+            <h2 className="lab-experiment-heading" ref={heading} tabIndex={-1}>
+              Action chunking
+            </h2>
             <button className="close-button" onClick={close} aria-label="Back to experiments">
               ×
             </button>
-          </div>
-          <h2 ref={heading} tabIndex={-1}>
-            Robotics, on the bench.
-          </h2>
-          <div className="lab-lesson-label">
-            <span className="eyebrow">EXPERIMENT 01</span>
-            <span>Action chunking</span>
           </div>
           <h3 className="lab-question">Why predict several actions at once?</h3>
           <p>
