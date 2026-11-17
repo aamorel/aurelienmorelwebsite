@@ -260,7 +260,7 @@ describe('focused lab navigation', () => {
     const canvas = await screen.findByTestId('scene')
     const vignette = screen.getByRole('button', { name: /Action chunking/ })
     fireEvent.click(vignette)
-    expect(vignette.getAttribute('aria-expanded')).toBe('true')
+    expect(screen.queryByRole('button', { name: /Action chunking/ })).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Back to experiments' }))
     expect(screen.queryByRole('heading', { name: 'Robotics, on the bench.' })).toBeNull()
     expect(vignette.getAttribute('aria-expanded')).toBe('false')

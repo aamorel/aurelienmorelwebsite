@@ -100,6 +100,12 @@ export default function App() {
   }, [navigation.revision])
   const [experimentOpen, setExperimentOpen] = useState(false)
   const experimentButton = useRef<HTMLButtonElement>(null)
+  const wasExperimentOpen = useRef(false)
+  useEffect(() => {
+    if (wasExperimentOpen.current && !experimentOpen)
+      experimentButton.current?.focus({ preventScroll: true })
+    wasExperimentOpen.current = experimentOpen
+  }, [experimentOpen])
   useEffect(() => {
     if (navigation.selected !== 'lab') setExperimentOpen(false)
   }, [navigation.selected])
@@ -300,6 +306,8 @@ export default function App() {
               {labOpen && (
                 <div
                   className={`experiment-vignettes ${experimentOpen ? 'is-selected' : ''}`}
+                  hidden={experimentOpen}
+                  inert={experimentOpen}
                   aria-label="Choose an experiment"
                 >
                   <button
@@ -403,7 +411,6 @@ export default function App() {
                   setLabRequest(null)
                   setExperimentOpen(false)
                   resetLab()
-                  experimentButton.current?.focus({ preventScroll: true })
                 }}
                 request={labRequest}
                 snapshot={labSnapshot}
