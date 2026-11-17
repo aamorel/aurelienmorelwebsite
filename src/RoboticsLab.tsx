@@ -30,6 +30,8 @@ export default function RoboticsLab({
   const execution = single ? 1 : chunk
   useEffect(() => {
     heading.current?.focus({ preventScroll: true })
+    if (window.matchMedia('(max-width: 760px)').matches)
+      heading.current?.scrollIntoView({ block: 'start', behavior: 'instant' })
   }, [])
   useEffect(() => {
     if (request && snapshot.finished)
@@ -39,12 +41,16 @@ export default function RoboticsLab({
       }))
   }, [request, snapshot.finished, snapshot.elapsed, snapshot.calls])
   return (
-    <aside className="reading-panel is-open lab-panel" aria-label="Robotics lab">
+    <aside
+      id="lab-experiment"
+      className="reading-panel is-open lab-panel"
+      aria-label="Robotics lab"
+    >
       <div className="panel-scroll">
         <section className="panel-content">
           <div className="panel-topline">
             <span className="eyebrow">THE EXPERIMENT CONSOLE</span>
-            <button className="close-button" onClick={close} aria-label="Close robotics lab">
+            <button className="close-button" onClick={close} aria-label="Back to experiments">
               ×
             </button>
           </div>

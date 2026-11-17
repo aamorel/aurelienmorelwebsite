@@ -72,6 +72,7 @@ function Link({ length, upper = false }: { length: number; upper?: boolean }) {
 }
 
 type Props = {
+  labExperimentOpen?: boolean
   labRequest?: LabRequest | null
   labTargetRevision?: number
   onLabUpdate?: (snapshot: LabSnapshot) => void
@@ -86,6 +87,7 @@ type Props = {
 }
 
 export default function RobotArm({
+  labExperimentOpen,
   labRequest,
   labTargetRevision,
   onLabUpdate,
@@ -237,7 +239,7 @@ export default function RobotArm({
     <>
       <group
         ref={labPad}
-        visible={selected === 'lab'}
+        visible={selected === 'lab' && labExperimentOpen}
         position={[LAB_TARGETS[0][0], 0.012, LAB_TARGETS[0][2]]}
       >
         <mesh rotation={[-Math.PI / 2, 0, 0]} raycast={() => null}>

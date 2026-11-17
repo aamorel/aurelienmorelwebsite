@@ -97,7 +97,23 @@ export default function App() {
     setLabRequest(null)
     setLabSnapshot({ ...EMPTY_LAB })
   }, [navigation.revision])
-  const labOpen = navigation.visible === 'lab'
+  const [experimentOpen, setExperimentOpen] = useState(false)
+  const experimentButton = useRef<HTMLButtonElement>(null)
+  useEffect(() => {
+    if (navigation.selected !== 'lab') setExperimentOpen(false)
+  }, [navigation.selected])
+  const labOpen = navigation.selected === 'lab'
+  const labHeading = useRef<HTMLHeadingElement>(null)
+  const wasLabOpen = useRef(false)
+  useEffect(() => {
+    if (labOpen) {
+      labHeading.current?.focus({ preventScroll: true })
+      labHeading.current?.scrollIntoView({ block: 'start', behavior: 'instant' })
+    } else if (wasLabOpen.current) {
+      document.querySelector<HTMLElement>('nav a[href="#lab"]')?.focus({ preventScroll: true })
+    }
+    wasLabOpen.current = labOpen
+  }, [labOpen])
   const resetLab = () => {
     setLabRequest(null)
     setLabSnapshot({ ...EMPTY_LAB })
@@ -126,7 +142,7 @@ export default function App() {
     )
 
   return (
-    <div className="site-shell">
+    <div className={`site-shell ${labOpen ? 'lab-mode' : ''}`}>
       <a href="#main" className="skip-link">
         Skip to content
       </a>
@@ -147,59 +163,87 @@ export default function App() {
             Aurélien’s workbench<span className="wordmark-dot">.</span>
           </span>
         </a>
-        <nav aria-label="Main navigation">
-          {sections.map((section) => (
-            <a
-              key={section.id}
-              href={`#${section.id}`}
-              aria-current={navigation.selected === section.id ? 'page' : undefined}
-              onClick={(event) => {
-                if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
-                event.preventDefault()
-                select(section.id, event.currentTarget)
-              }}
-              onMouseEnter={() => setHovered(section.id)}
-              onMouseLeave={() => setHovered(null)}
-              onFocus={() => setHovered(section.id)}
-              onBlur={() => setHovered(null)}
-            >
-              {section.label}
-            </a>
-          ))}
-        </nav>
-        <a className="header-contact" href={`mailto:${profile.email}`}>
-          Say hello <ArrowIcon diagonal />
-        </a>
+        {!labOpen && (
+          <nav aria-label="Main navigation">
+            {sections.map((section) => (
+              <a
+                key={section.id}
+                href={`#${section.id}`}
+                aria-current={navigation.selected === section.id ? 'page' : undefined}
+                onClick={(event) => {
+                  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+                  event.preventDefault()
+                  select(section.id, event.currentTarget)
+                }}
+                onMouseEnter={() => setHovered(section.id)}
+                onMouseLeave={() => setHovered(null)}
+                onFocus={() => setHovered(section.id)}
+                onBlur={() => setHovered(null)}
+              >
+                {section.label}
+              </a>
+            ))}
+          </nav>
+        )}
+        {labOpen ? (
+          <button
+            className="lab-return"
+            onClick={() => {
+              setLabRequest(null)
+              navigation.close()
+            }}
+          >
+            ← Return to the workbench
+          </button>
+        ) : (
+          <a className="header-contact" href={`mailto:${profile.email}`}>
+            Say hello <ArrowIcon diagonal />
+          </a>
+        )}
       </header>
       <main id="main">
-        <section className="introduction" aria-labelledby="site-heading">
-          <div className="intro-copy">
-            <div className="identity">
-              <span className="status-dot" />
-              <span>
-                {profile.name} <span className="identity-divider">/</span> {profile.role}
-              </span>
-            </div>
-            <h1 id="site-heading">
-              {profile.headline[0]}
-              <br />
-              <em>{profile.headline[1]}</em>
+        {labOpen ? (
+          <section className="lab-introduction" aria-labelledby="lab-heading">
+            <span className="eyebrow">A LITTLE SPACE TO EXPERIMENT</span>
+            <h1 id="lab-heading" ref={labHeading} tabIndex={-1}>
+              The robotics lab<span>.</span>
             </h1>
-            <p>{profile.introduction}</p>
-          </div>
-        </section>
+            <p>Pick a question. Try it on the arm. See what changes.</p>
+          </section>
+        ) : (
+          <section className="introduction" aria-labelledby="site-heading">
+            <div className="intro-copy">
+              <div className="identity">
+                <span className="status-dot" />
+                <span>
+                  {profile.name} <span className="identity-divider">/</span> {profile.role}
+                </span>
+              </div>
+              <h1 id="site-heading">
+                {profile.headline[0]}
+                <br />
+                <em>{profile.headline[1]}</em>
+              </h1>
+              <p>{profile.introduction}</p>
+            </div>
+          </section>
+        )}
         <div
-          className={`workbench-layout ${navigation.visible ? 'has-panel' : ''} ${hobbiesOpen && !labOpen ? 'has-hobbies' : ''} ${labOpen ? 'has-lab' : ''}`}
+          className={`workbench-layout ${labOpen ? (experimentOpen ? 'has-panel' : '') : navigation.visible ? 'has-panel' : ''} ${hobbiesOpen && !labOpen ? 'has-hobbies' : ''} ${labOpen ? 'has-lab' : ''}`}
         >
-          <Hobbies
-            motionEnabled={!reducedMotion && !motionPaused && !chessOpen}
-            open={hobbiesOpen && !labOpen}
-            onToggle={() => setHobbiesOpen(!hobbiesOpen)}
-            onChess={() => setChessOpen(true)}
-          />
+          {!labOpen && (
+            <Hobbies
+              motionEnabled={!reducedMotion && !motionPaused && !chessOpen}
+              open={hobbiesOpen && !labOpen}
+              onToggle={() => setHobbiesOpen(!hobbiesOpen)}
+              onChess={() => setChessOpen(true)}
+            />
+          )}
           <section className="scene-section" aria-label="Interactive robot workbench">
             <div className="scene-topline">
-              <span className="eyebrow">THE CURIOSITY DESK</span>
+              <span className="eyebrow">
+                {labOpen ? 'THE EXPERIMENT BENCH' : 'THE CURIOSITY DESK'}
+              </span>
               <span className="live-state">
                 <span
                   className={`status-dot ${navigation.mode === 'reaching' || playing || dancing || tracking ? 'busy' : ''}`}
@@ -227,6 +271,7 @@ export default function App() {
               <SceneBoundary onFailure={onFailure}>
                 <Suspense fallback={<SceneFallback />}>
                   <WorkbenchScene
+                    labExperimentOpen={experimentOpen}
                     labRequest={labRequest}
                     labTargetRevision={labTargetRevision}
                     onLabUpdate={setLabSnapshot}
@@ -247,43 +292,81 @@ export default function App() {
                   />
                 </Suspense>
               </SceneBoundary>
+              {labOpen && (
+                <div
+                  className={`experiment-vignettes ${experimentOpen ? 'is-selected' : ''}`}
+                  aria-label="Choose an experiment"
+                >
+                  <button
+                    ref={experimentButton}
+                    className="experiment-vignette"
+                    aria-expanded={experimentOpen}
+                    aria-controls="lab-experiment"
+                    onClick={() => setExperimentOpen(true)}
+                  >
+                    <span className="vignette-art" aria-hidden="true">
+                      <i />
+                      <i />
+                      <i />
+                      <i />
+                      <i />
+                      <i />
+                    </span>
+                    <span className="eyebrow">01 · LEARNING & CONTROL</span>
+                    <strong>Action chunking</strong>
+                    <span>One action, or a plan ahead?</span>
+                    <span className="vignette-link">Explore experiment ↗</span>
+                  </button>
+                  {!experimentOpen && (
+                    <div className="lab-future-note">
+                      <span>+</span> More experiments will join the bench.
+                    </div>
+                  )}
+                </div>
+              )}
               <div className="scene-corner corner-tl" />
               <div className="scene-corner corner-br" />
             </div>
             <div className="scene-bottomline">
               <span className="scene-hint">
                 <span aria-hidden="true">↖</span>
-                {tracking
-                  ? 'Move your mouse over the bench.'
-                  : 'Pick an object. Follow your curiosity.'}
+                {labOpen
+                  ? 'Choose an experiment to begin.'
+                  : tracking
+                    ? 'Move your mouse over the bench.'
+                    : 'Pick an object. Follow your curiosity.'}
               </span>
               <div className="scene-controls">
-                <button
-                  className="behavior-button"
-                  disabled={behaviorDisabled}
-                  onClick={() => startBehavior('cube')}
-                >
-                  <ObjectIcon kind="work" />
-                  Spawn a cube
-                </button>
-                <button
-                  className="behavior-button"
-                  disabled={behaviorDisabled}
-                  onClick={() => startBehavior('dance')}
-                >
-                  <DanceIcon />
-                  Dance
-                </button>
-                {canTrack && (
-                  <button
-                    className="behavior-button"
-                    disabled={behaviorDisabled}
-                    title="Follow your mouse for 10 seconds"
-                    onClick={() => startBehavior('track')}
-                  >
-                    <TrackIcon />
-                    Track
-                  </button>
+                {!labOpen && (
+                  <>
+                    <button
+                      className="behavior-button"
+                      disabled={behaviorDisabled}
+                      onClick={() => startBehavior('cube')}
+                    >
+                      <ObjectIcon kind="work" />
+                      Spawn a cube
+                    </button>
+                    <button
+                      className="behavior-button"
+                      disabled={behaviorDisabled}
+                      onClick={() => startBehavior('dance')}
+                    >
+                      <DanceIcon />
+                      Dance
+                    </button>
+                    {canTrack && (
+                      <button
+                        className="behavior-button"
+                        disabled={behaviorDisabled}
+                        title="Follow your mouse for 10 seconds"
+                        onClick={() => startBehavior('track')}
+                      >
+                        <TrackIcon />
+                        Track
+                      </button>
+                    )}
+                  </>
                 )}
                 <button
                   className="motion-toggle"
@@ -309,58 +392,64 @@ export default function App() {
             </div>
           </section>
           {labOpen ? (
-            <RoboticsLab
-              close={() => {
-                setLabRequest(null)
-                navigation.close()
-              }}
-              request={labRequest}
-              snapshot={labSnapshot}
-              available={
-                sceneReady &&
-                !sceneFailed &&
-                sceneVisible &&
-                !reducedMotion &&
-                !motionPaused &&
-                !chessOpen
-              }
-              run={(chunk, delay) => {
-                setLabSnapshot({ ...EMPTY_LAB })
-                setLabRequest((previous) => ({
-                  chunk,
-                  delay,
-                  revision: (previous?.revision ?? 0) + 1,
-                }))
-              }}
-              moveTarget={() => setLabTargetRevision((previous) => previous + 1)}
-              stop={resetLab}
-            />
+            experimentOpen ? (
+              <RoboticsLab
+                close={() => {
+                  setLabRequest(null)
+                  setExperimentOpen(false)
+                  resetLab()
+                  experimentButton.current?.focus({ preventScroll: true })
+                }}
+                request={labRequest}
+                snapshot={labSnapshot}
+                available={
+                  sceneReady &&
+                  !sceneFailed &&
+                  sceneVisible &&
+                  !reducedMotion &&
+                  !motionPaused &&
+                  !chessOpen
+                }
+                run={(chunk, delay) => {
+                  setLabSnapshot({ ...EMPTY_LAB })
+                  setLabRequest((previous) => ({
+                    chunk,
+                    delay,
+                    revision: (previous?.revision ?? 0) + 1,
+                  }))
+                }}
+                moveTarget={() => setLabTargetRevision((previous) => previous + 1)}
+                stop={resetLab}
+              />
+            ) : null
           ) : (
             <ContentPanel {...navigation} select={select} />
           )}
         </div>
-        <section className="contact-strip" id="contact" aria-labelledby="contact-heading">
-          <div>
-            <span className="eyebrow">THE NEXT CHAPTER</span>
-            <h2 id="contact-heading">Let’s talk robotics.</h2>
-            <p>Research, collaboration, or something worth building together.</p>
-          </div>
-          <div className="contact-details">
-            <a className="contact-email" href={`mailto:${profile.email}`}>
-              {profile.email}
-              <ArrowIcon diagonal />
-            </a>
-            <div className="contact-profiles">
-              <span>{profile.location}</span>
-              {profile.links.map((link) => (
-                <a href={link.url} key={link.url}>
-                  {link.label}
-                  <ArrowIcon diagonal />
-                </a>
-              ))}
+        {!labOpen && (
+          <section className="contact-strip" id="contact" aria-labelledby="contact-heading">
+            <div>
+              <span className="eyebrow">THE NEXT CHAPTER</span>
+              <h2 id="contact-heading">Let’s talk robotics.</h2>
+              <p>Research, collaboration, or something worth building together.</p>
             </div>
-          </div>
-        </section>
+            <div className="contact-details">
+              <a className="contact-email" href={`mailto:${profile.email}`}>
+                {profile.email}
+                <ArrowIcon diagonal />
+              </a>
+              <div className="contact-profiles">
+                <span>{profile.location}</span>
+                {profile.links.map((link) => (
+                  <a href={link.url} key={link.url}>
+                    {link.label}
+                    <ArrowIcon diagonal />
+                  </a>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
       </main>
       {chessOpen && <ChessPuzzle onClose={() => setChessOpen(false)} />}
       <div className="sr-only" role="status" aria-live="polite">

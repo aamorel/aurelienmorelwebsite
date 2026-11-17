@@ -2046,3 +2046,178 @@ nav a[aria-current]::after {
     min-height: 0;
   }
 }
+
+/* A dedicated lab mode, with the same mounted arm and a clear way home. */
+.lab-return {
+  margin-left: auto;
+  font: 11px var(--mono);
+  color: var(--green);
+  padding: 10px 0;
+}
+.lab-introduction {
+  padding: 32px 0 24px;
+}
+.lab-introduction h1 {
+  font: 38px var(--serif);
+  letter-spacing: -1px;
+  margin: 7px 0 10px;
+}
+.lab-introduction h1 span {
+  color: var(--accent);
+}
+.lab-introduction p {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 0;
+}
+.workbench-layout.has-lab {
+  --stage-height: clamp(560px, calc(100svh - 250px), 1100px);
+  grid-template-columns: minmax(0, 1fr);
+}
+.workbench-layout.has-lab.has-panel {
+  grid-template-columns: minmax(0, 1fr) var(--panel-width);
+}
+.has-lab .scene-viewport {
+  isolation: isolate;
+}
+.experiment-vignettes {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 25;
+}
+.experiment-vignette {
+  pointer-events: auto;
+  position: absolute;
+  top: 7%;
+  left: 2%;
+  width: 205px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 16px;
+  background: #f8f6eef2;
+  border: 1px solid #c9d0bd;
+  border-radius: 8px;
+  box-shadow: 0 8px 30px #3441270b;
+  transition:
+    border-color 180ms,
+    transform 180ms;
+}
+.experiment-vignette:hover {
+  transform: translateY(-3px);
+  border-color: var(--green);
+}
+.experiment-vignette[aria-expanded='true'] {
+  border-color: var(--green);
+}
+.experiment-vignette strong {
+  font: 19px var(--serif);
+}
+.experiment-vignette > span:not(.eyebrow):not(.vignette-art) {
+  font-size: 11px;
+  color: var(--muted);
+}
+.experiment-vignette .vignette-link {
+  margin-top: 5px;
+  color: var(--green) !important;
+  font-family: var(--mono);
+  font-size: 9px !important;
+}
+.vignette-art {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 48px;
+}
+.vignette-art i {
+  width: 17px;
+  height: 22px;
+  background: #d2dbc3;
+  border-radius: 3px;
+}
+.vignette-art i:first-child {
+  background: var(--accent);
+  margin-right: 8px;
+}
+.vignette-art i:nth-child(2) {
+  background: var(--green);
+}
+.lab-future-note {
+  position: absolute;
+  right: 4%;
+  bottom: 15%;
+  font: 10px var(--mono);
+  color: #858d79;
+  max-width: 160px;
+  line-height: 1.8;
+}
+.lab-future-note > span {
+  display: block;
+  font-size: 25px;
+  color: #a8b19b;
+}
+.has-lab.has-panel .experiment-vignette {
+  top: 2%;
+  width: 165px;
+  padding: 12px;
+  gap: 6px;
+}
+.has-lab.has-panel .vignette-art {
+  height: 26px;
+}
+@media (max-width: 1000px) {
+  .has-lab.has-panel .experiment-vignette {
+    width: 140px;
+  }
+  .has-lab.has-panel .experiment-vignette strong {
+    font-size: 16px;
+  }
+}
+@media (max-width: 760px) {
+  .lab-mode .wordmark {
+    font-size: 15px;
+  }
+  .lab-return {
+    font-size: 9px;
+    max-width: 135px;
+    text-align: right;
+    line-height: 1.7;
+  }
+  .lab-introduction {
+    padding: 24px 0 16px;
+  }
+  .lab-introduction h1 {
+    font-size: 30px;
+  }
+  .workbench-layout.has-lab,
+  .workbench-layout.has-lab.has-panel {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .has-lab .scene-section {
+    height: 560px;
+  }
+  .experiment-vignette,
+  .has-lab.has-panel .experiment-vignette {
+    top: 0;
+    left: 20px;
+    width: 180px;
+    padding: 12px;
+    gap: 6px;
+  }
+  .vignette-art {
+    height: 30px;
+  }
+  .lab-future-note {
+    right: 20px;
+    bottom: 3%;
+    max-width: 140px;
+    font-size: 9px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .experiment-vignette {
+    transition: none;
+  }
+}
