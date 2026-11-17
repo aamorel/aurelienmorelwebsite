@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from 'react'
 import { profile, sections, type Section } from './content'
+import { useLabTransition } from './useLabTransition'
 import { useNavigation } from './useNavigation'
 import { useCanTrack, useReducedMotion, useSceneVisibility } from './hooks'
 import { ArrowIcon, DanceIcon, ObjectIcon, RobotIcon, TrackIcon } from './Icons'
@@ -102,13 +103,16 @@ export default function App() {
   useEffect(() => {
     if (navigation.selected !== 'lab') setExperimentOpen(false)
   }, [navigation.selected])
-  const labOpen = navigation.selected === 'lab'
+  const labOpen = useLabTransition(navigation.selected === 'lab', reducedMotion)
   const labHeading = useRef<HTMLHeadingElement>(null)
   const wasLabOpen = useRef(false)
   useEffect(() => {
     if (labOpen) {
       labHeading.current?.focus({ preventScroll: true })
-      labHeading.current?.scrollIntoView({ block: 'start', behavior: 'instant' })
+      labHeading.current?.scrollIntoView({
+        block: 'start',
+        behavior: reducedMotion ? 'instant' : 'smooth',
+      })
     } else if (wasLabOpen.current) {
       document.querySelector<HTMLElement>('nav a[href="#lab"]')?.focus({ preventScroll: true })
     }
@@ -271,6 +275,7 @@ export default function App() {
               <SceneBoundary onFailure={onFailure}>
                 <Suspense fallback={<SceneFallback />}>
                   <WorkbenchScene
+                    labMode={labOpen}
                     labExperimentOpen={experimentOpen}
                     labRequest={labRequest}
                     labTargetRevision={labTargetRevision}

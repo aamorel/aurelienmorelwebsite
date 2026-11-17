@@ -2221,3 +2221,63 @@ nav a[aria-current]::after {
     transition: none;
   }
 }
+
+/* Preserve the bench visually while the page rearranges around it. */
+.scene-viewport {
+  view-transition-name: workbench;
+}
+::view-transition-group(root),
+::view-transition-group(workbench) {
+  animation-duration: 650ms;
+  animation-timing-function: cubic-bezier(0.22, 0.68, 0, 1);
+}
+::view-transition-old(root) {
+  animation: lab-view-out 240ms ease both;
+}
+::view-transition-new(root) {
+  animation: lab-view-in 420ms 100ms ease both;
+}
+::view-transition-old(workbench) {
+  animation: lab-view-out 400ms ease both;
+}
+::view-transition-new(workbench) {
+  animation: lab-view-in 500ms 80ms ease both;
+}
+@keyframes lab-view-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes lab-view-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.lab-introduction,
+.experiment-vignettes {
+  animation: lab-arrive 500ms ease both;
+}
+@keyframes lab-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lab-introduction,
+  .experiment-vignettes {
+    animation: none;
+  }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none;
+  }
+}

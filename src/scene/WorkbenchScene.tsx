@@ -19,6 +19,7 @@ const graphite = new MeshStandardMaterial({ color: palette.dark, roughness: 0.65
 const orange = new MeshStandardMaterial({ color: palette.clay, roughness: 0.6 })
 
 type Props = {
+  labMode?: boolean
   labExperimentOpen?: boolean
   labRequest?: LabRequest | null
   labTargetRevision?: number
@@ -486,7 +487,7 @@ export default function WorkbenchScene(props: Props) {
         trackEnabled={props.trackEnabled}
         onTrackTimeChange={props.onTrackTimeChange}
       />
-      {props.selected !== 'lab' && (
+      {!props.labMode && (
         <>
           <DeskObject id="lab" props={props}>
             <group rotation={[0, 0.1, 0]}>
