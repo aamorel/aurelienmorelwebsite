@@ -1,9 +1,8 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Canvas, useThree, type ThreeEvent } from '@react-three/fiber'
-import { Html, Line, RoundedBox } from '@react-three/drei'
+import { Line, RoundedBox } from '@react-three/drei'
 import { Group, MeshStandardMaterial, OrthographicCamera, Vector3 } from 'three'
-import { sections, type Section } from '../content'
-import { ArrowIcon, CheckIcon } from '../Icons'
+import type { Section } from '../content'
 import type { Mode } from '../useNavigation'
 import RobotArm from './RobotArm'
 import type { ArmPhase, BehaviorRequest } from './motion'
@@ -357,7 +356,6 @@ function Papers(props: SelectionProps) {
 function DeskObject({ id, props, children }: { id: Section; props: Props; children: ReactNode }) {
   const selected = props.selected === id
   const highlighted = props.hovered === id || selected
-  const section = sections.find((entry) => entry.id === id)!
   const hover = (event: ThreeEvent<PointerEvent>) => {
     event.stopPropagation()
     props.setHovered(id)
@@ -383,26 +381,6 @@ function DeskObject({ id, props, children }: { id: Section; props: Props; childr
           />
         </mesh>
       </group>
-      <Html position={TARGETS[id].label} center zIndexRange={[20, 0]}>
-        <a
-          href={`#${id}`}
-          className={`scene-label ${highlighted ? 'highlighted' : ''}`}
-          aria-current={selected ? 'page' : undefined}
-          onClick={(event) => {
-            event.stopPropagation()
-            if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
-            event.preventDefault()
-            props.select(id, event.currentTarget)
-          }}
-          onPointerEnter={() => props.setHovered(id)}
-          onPointerLeave={() => props.setHovered(null)}
-          onFocus={() => props.setHovered(id)}
-          onBlur={() => props.setHovered(null)}
-        >
-          {section.label}
-          {selected ? <CheckIcon /> : <ArrowIcon diagonal />}
-        </a>
-      </Html>
     </>
   )
 }

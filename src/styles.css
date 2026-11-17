@@ -1653,7 +1653,9 @@ nav a[aria-current]::after {
 }
 .chess-modal {
   width: min(440px, calc(100vw - 32px));
-  max-height: calc(100svh - 32px);
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  overscroll-behavior: contain;
   overflow-y: auto;
   padding: 22px;
   border: 1px solid #bcc5ae;
@@ -1678,6 +1680,8 @@ nav a[aria-current]::after {
   font-size: 27px;
   line-height: 1;
   padding: 3px 7px;
+  min-width: 44px;
+  min-height: 44px;
 }
 .chess-modal h2 {
   font: 400 32px var(--serif);
@@ -1688,13 +1692,20 @@ nav a[aria-current]::after {
 }
 .chess-board {
   display: grid;
-  grid-template-columns: repeat(8, 1fr);
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  grid-template-rows: repeat(8, minmax(0, 1fr));
+  width: 100%;
+  aspect-ratio: 1;
   border: 1px solid #a4af94;
   border-radius: 4px;
   overflow: hidden;
 }
 .chess-square {
-  aspect-ratio: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
   position: relative;
   padding: 0;
   display: grid;
@@ -1723,17 +1734,18 @@ nav a[aria-current]::after {
   position: absolute;
 }
 .chess-piece {
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: clamp(24px, 6vw, 39px);
-  line-height: 1;
+  display: block;
+  width: 88%;
+  height: 88%;
+  pointer-events: none;
 }
 .chess-piece.white {
-  color: #fffbee;
-  -webkit-text-stroke: 1px #52664a;
-  filter: drop-shadow(0 1px 1px #30372d30);
+  fill: #fffbee;
+  stroke: #354b35;
 }
 .chess-piece.black {
-  color: #354b35;
+  fill: #354b35;
+  stroke: #202f20;
 }
 .chess-file,
 .chess-rank {
@@ -1771,7 +1783,8 @@ nav a[aria-current]::after {
   border: 1px solid #bdc7b0;
   border-radius: 4px;
   padding: 8px 12px;
-  font-size: 11px;
+  font-size: 13px;
+  min-height: 44px;
 }
 .chess-actions button:hover {
   background: #e5e8dc;
@@ -1793,11 +1806,31 @@ nav a[aria-current]::after {
   font-size: 10px;
   text-transform: capitalize;
 }
-.chess-promotion button span {
-  font:
-    28px Georgia,
-    serif;
-  color: var(--green);
+.chess-promotion .chess-piece {
+  width: 36px;
+  height: 36px;
+}
+@media (max-width: 480px) {
+  .chess-modal {
+    width: calc(100% - 16px);
+    max-width: none;
+    max-height: calc(100dvh - 16px);
+    padding: 14px;
+    border-radius: 14px;
+  }
+  .chess-modal h2 {
+    font-size: 28px;
+  }
+  .chess-modal > p {
+    font-size: 14px;
+  }
+  .chess-actions button {
+    flex: 1;
+  }
+  .chess-promotion button {
+    min-height: 64px;
+    font-size: 12px;
+  }
 }
 .chess-promotion button:hover {
   background: #e5e8dc;
@@ -2290,4 +2323,58 @@ nav a[aria-current]::after {
 .lab-lesson-label > .close-button {
   margin-left: auto;
   flex-shrink: 0;
+}
+
+/* Labels occupy their own gutters, outside the rendered desk at every width. */
+.scene-renderer {
+  position: absolute;
+  inset: 0;
+}
+.scene-renderer.with-label-gutters {
+  inset: 54px 0;
+}
+.bench-labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: 44px 1fr 44px;
+  gap: 0 12px;
+  padding: 0 8px;
+}
+.bench-labels .scene-label {
+  pointer-events: auto;
+  align-self: center;
+  width: max-content;
+  max-width: 100%;
+}
+.bench-label-lab {
+  grid-area: 1 / 1;
+  justify-self: start;
+}
+.bench-label-work {
+  grid-area: 1 / 2;
+  justify-self: end;
+}
+.bench-label-education {
+  grid-area: 3 / 1;
+  justify-self: start;
+}
+.bench-label-publications {
+  grid-area: 3 / 2;
+  justify-self: end;
+}
+.bench-labels .scene-label::before {
+  height: 10px;
+}
+.bench-label-lab::before,
+.bench-label-work::before {
+  top: 100%;
+  bottom: auto;
+}
+@media (max-width: 760px) {
+  .bench-labels {
+    padding: 0 20px;
+  }
 }

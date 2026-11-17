@@ -13,7 +13,7 @@ import { profile, sections, type Section } from './content'
 import { useLabTransition } from './useLabTransition'
 import { useNavigation } from './useNavigation'
 import { useCanTrack, useReducedMotion, useSceneVisibility } from './hooks'
-import { ArrowIcon, DanceIcon, ObjectIcon, RobotIcon, TrackIcon } from './Icons'
+import { ArrowIcon, CheckIcon, DanceIcon, ObjectIcon, RobotIcon, TrackIcon } from './Icons'
 import type { ArmPhase, BehaviorRequest, Behavior } from './scene/motion'
 import { TRACK_DURATION } from './scene/trackRoutine'
 import ContentPanel from './ContentPanel'
@@ -278,31 +278,57 @@ export default function App() {
               </span>
             </div>
             <div className={`scene-viewport ${tracking ? 'is-tracking' : ''}`} ref={sceneRegion}>
-              <SceneBoundary onFailure={onFailure}>
-                <Suspense fallback={<SceneFallback />}>
-                  <WorkbenchScene
-                    labMode={labOpen}
-                    labExperimentOpen={experimentOpen}
-                    labRequest={labRequest}
-                    labTargetRevision={labTargetRevision}
-                    onLabUpdate={setLabSnapshot}
-                    selected={navigation.selected}
-                    mode={navigation.mode}
-                    revision={navigation.revision}
-                    hovered={hovered}
-                    setHovered={setHovered}
-                    select={select}
-                    motionEnabled={!reducedMotion && !motionPaused}
-                    active={sceneVisible && !chessOpen}
-                    onReady={onReady}
-                    onFailure={onFailure}
-                    behaviorRequest={behaviorRequest}
-                    onPhaseChange={setArmPhase}
-                    trackEnabled={canTrack}
-                    onTrackTimeChange={setTrackSeconds}
-                  />
-                </Suspense>
-              </SceneBoundary>
+              <div className={`scene-renderer ${labOpen ? '' : 'with-label-gutters'}`}>
+                <SceneBoundary onFailure={onFailure}>
+                  <Suspense fallback={<SceneFallback />}>
+                    <WorkbenchScene
+                      labMode={labOpen}
+                      labExperimentOpen={experimentOpen}
+                      labRequest={labRequest}
+                      labTargetRevision={labTargetRevision}
+                      onLabUpdate={setLabSnapshot}
+                      selected={navigation.selected}
+                      mode={navigation.mode}
+                      revision={navigation.revision}
+                      hovered={hovered}
+                      setHovered={setHovered}
+                      select={select}
+                      motionEnabled={!reducedMotion && !motionPaused}
+                      active={sceneVisible && !chessOpen}
+                      onReady={onReady}
+                      onFailure={onFailure}
+                      behaviorRequest={behaviorRequest}
+                      onPhaseChange={setArmPhase}
+                      trackEnabled={canTrack}
+                      onTrackTimeChange={setTrackSeconds}
+                    />
+                  </Suspense>
+                </SceneBoundary>
+              </div>
+              {!labOpen && (
+                <div className="bench-labels" aria-label="Workbench objects">
+                  {sections.map((section) => (
+                    <a
+                      key={section.id}
+                      href={`#${section.id}`}
+                      className={`scene-label bench-label-${section.id} ${hovered === section.id || navigation.selected === section.id ? 'highlighted' : ''}`}
+                      aria-current={navigation.selected === section.id ? 'page' : undefined}
+                      onClick={(event) => {
+                        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+                        event.preventDefault()
+                        select(section.id, event.currentTarget)
+                      }}
+                      onPointerEnter={() => setHovered(section.id)}
+                      onPointerLeave={() => setHovered(null)}
+                      onFocus={() => setHovered(section.id)}
+                      onBlur={() => setHovered(null)}
+                    >
+                      {section.label}
+                      {navigation.selected === section.id ? <CheckIcon /> : <ArrowIcon diagonal />}
+                    </a>
+                  ))}
+                </div>
+              )}
               {labOpen && (
                 <div
                   className={`experiment-vignettes ${experimentOpen ? 'is-selected' : ''}`}
