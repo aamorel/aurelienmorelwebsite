@@ -1855,3 +1855,194 @@ nav a[aria-current]::after {
     backdrop-filter: blur(0);
   }
 }
+
+/* The lab shares the existing stage: the arm stays mounted across lessons. */
+.workbench-layout.has-lab {
+  --panel-width: clamp(380px, 40vw, 570px);
+}
+.lab-panel .panel-content {
+  padding-bottom: 24px;
+}
+.lab-lesson-label {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  font: 12px var(--mono);
+  color: #52664a;
+}
+.lab-question {
+  font: 23px var(--serif);
+  line-height: 1.3;
+  margin-top: 24px;
+}
+.lab-modes {
+  display: flex;
+  padding: 4px;
+  background: #e8eadd;
+  border-radius: 8px;
+  margin: 22px 0;
+  gap: 4px;
+}
+.lab-panel button {
+  cursor: pointer;
+}
+.lab-modes button {
+  flex: 1;
+  padding: 10px 5px;
+  background: transparent;
+  border: 0;
+  border-radius: 5px;
+  font: 11px var(--mono);
+  color: #52664a;
+}
+.lab-modes button[aria-pressed='true'] {
+  background: #faf8ee;
+  box-shadow: 0 1px 4px #363e2314;
+}
+.lab-panel button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.lab-slider {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  font: 11px var(--mono);
+  margin: 20px 0;
+  color: #59634f;
+}
+.lab-slider input {
+  grid-column: 1 / -1;
+  width: 100%;
+  accent-color: #71885d;
+}
+.lab-slider output {
+  color: #ac6945;
+}
+.lab-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 20px 0;
+}
+.lab-actions button {
+  border: 1px solid #c8ceba;
+  border-radius: 5px;
+  background: transparent;
+  padding: 10px 12px;
+  font: 11px var(--mono);
+  color: #52664a;
+}
+.lab-actions .lab-run {
+  background: #52664a;
+  color: #faf8ee;
+  border-color: #52664a;
+}
+.lab-monitor {
+  padding: 16px;
+  background: #e8eadd80;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+}
+.lab-monitor .panel-topline {
+  gap: 8px;
+  font: 9px var(--mono);
+}
+.lab-timeline {
+  display: grid;
+  grid-template-columns: repeat(24, 1fr);
+  gap: 3px;
+  margin: 20px 0 12px;
+}
+.lab-timeline span {
+  height: 25px;
+  border: 1px solid #c8ceba;
+  border-radius: 2px;
+  position: relative;
+}
+.lab-timeline .predicted {
+  background: #d8dfc7;
+  border-color: #91a17c;
+}
+.lab-timeline .executed {
+  background: #71885d;
+  border-color: #71885d;
+}
+.lab-timeline .observation::before {
+  content: '';
+  position: absolute;
+  top: -7px;
+  left: -2px;
+  height: 5px;
+  border-left: 2px solid #ba754e;
+}
+.lab-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font: 8px var(--mono);
+  color: #718064;
+}
+.lab-metrics {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 0;
+}
+.lab-metrics dt {
+  font: 8px var(--mono);
+  color: #7c806f;
+}
+.lab-metrics dd {
+  margin: 6px 0 0;
+  font: 17px var(--mono);
+  color: #52664a;
+}
+.lab-monitor p,
+.lab-note {
+  font-size: 11px;
+  line-height: 1.7;
+  color: #7c806f;
+}
+.lab-comparison {
+  margin: 20px 0 26px;
+}
+.lab-comparison > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line);
+  font: 10px var(--mono);
+}
+.lab-comparison strong {
+  font-weight: 400;
+  color: #52664a;
+}
+.lab-panel details {
+  padding: 16px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  margin: 22px 0;
+}
+.lab-panel summary {
+  cursor: pointer;
+  font: 12px var(--mono);
+  color: #52664a;
+  line-height: 1.6;
+}
+.lab-panel details a {
+  font-size: 12px;
+  color: #52664a;
+}
+@media (max-width: 760px) {
+  .has-lab .scene-section {
+    padding-right: 0;
+  }
+  .lab-panel {
+    min-height: 0;
+  }
+}

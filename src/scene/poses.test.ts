@@ -14,6 +14,8 @@ describe('authored arm geometry and motion', () => {
   it('reaches the notebook, prototype, and papers with the defined link lengths', () => {
     const heights = { education: 0.22, work: 0.64, publications: 0.12 }
     for (const [name, target] of Object.entries(TARGETS)) {
+      // The lab console opens directly; it is not a physical touch target.
+      if (name === 'lab') continue
       const tool = toolPosition(target.touch)
       expect(tool[0]).toBeCloseTo(target.position[0], 3)
       expect(tool[2]).toBeCloseTo(target.position[2], 3)

@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import { RoundedBox } from '@react-three/drei'
 import { Group, MeshStandardMaterial, Plane, Raycaster, Vector2, Vector3 } from 'three'
+import { LAB_TARGETS, type LabRequest, type LabSnapshot } from '../lab'
 import { ARM, type Pose } from './config'
 import { ArmMotion, type ArmPhase, type BehaviorRequest } from './motion'
 import { CUBE_SIZE } from './cubeRoutine'
@@ -71,6 +72,9 @@ function Link({ length, upper = false }: { length: number; upper?: boolean }) {
 }
 
 type Props = {
+  labRequest?: LabRequest | null
+  labTargetRevision?: number
+  onLabUpdate?: (snapshot: LabSnapshot) => void
   selected: Section | null
   mode: Mode
   revision: number
@@ -82,6 +86,9 @@ type Props = {
 }
 
 export default function RobotArm({
+  labRequest,
+  labTargetRevision,
+  onLabUpdate,
   selected,
   mode,
   revision,
@@ -91,6 +98,8 @@ export default function RobotArm({
   trackEnabled,
   onTrackTimeChange,
 }: Props) {
+  const labPad = useRef<Group>(null!)
+  const lastLabReport = useRef('')
   const yaw = useRef<Group>(null!)
   const shoulder = useRef<Group>(null!)
   const elbow = useRef<Group>(null!)
@@ -116,6 +125,16 @@ export default function RobotArm({
     roll.current.rotation.y = pose[4]
     left.current.position.x = -pose[5]
     right.current.position.x = pose[5]
+    const lab = motion.current!.labSnapshot
+    if (lab) {
+      labPad.current.position.set(LAB_TARGETS[lab.target][0], 0.012, LAB_TARGETS[lab.target][2])
+      const key = `${lab.step}:${lab.calls}:${lab.waiting}:${lab.target}:${lab.finished}`
+      if (key !== lastLabReport.current) {
+        lastLabReport.current = key
+        onLabUpdate?.({ ...lab })
+      }
+    }
+    if (!lab) labPad.current.position.set(LAB_TARGETS[0][0], 0.012, LAB_TARGETS[0][2])
     const state = motion.current!.cube
     cube.current.visible = state !== null
     if (state) {
@@ -143,6 +162,22 @@ export default function RobotArm({
     apply(motion.current!.pose)
     invalidate()
   }, [selected, revision, mode, motionEnabled, invalidate, onPhaseChange])
+
+  useEffect(() => {
+    if (selected === 'lab' && labRequest && motionEnabled) {
+      lastLabReport.current = ''
+      motion.current!.startLab(labRequest)
+      apply(motion.current!.pose)
+      invalidate()
+    }
+  }, [labRequest, selected, invalidate])
+  useEffect(() => {
+    if (labTargetRevision) {
+      motion.current!.moveLabTarget()
+      apply(motion.current!.pose)
+      invalidate()
+    }
+  }, [labTargetRevision, invalidate])
 
   useEffect(() => {
     if (!behaviorRequest || lastBehavior.current === behaviorRequest) return
@@ -200,6 +235,16 @@ export default function RobotArm({
 
   return (
     <>
+      <group
+        ref={labPad}
+        visible={selected === 'lab'}
+        position={[LAB_TARGETS[0][0], 0.012, LAB_TARGETS[0][2]]}
+      >
+        <mesh rotation={[-Math.PI / 2, 0, 0]} raycast={() => null}>
+          <ringGeometry args={[0.17, 0.22, 40]} />
+          <meshBasicMaterial color="#71885d" transparent opacity={0.8} />
+        </mesh>
+      </group>
       <ScoreConfetti motion={motion} />
       <DiscoBall motion={motion} motionEnabled={motionEnabled} />
       <BasketballHoop motion={motion} motionEnabled={motionEnabled} />

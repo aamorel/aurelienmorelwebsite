@@ -32,6 +32,14 @@ export const TARGETS: Record<
   Section,
   { position: Point; label: Point; rotation: number; approach: Pose; touch: Pose; safe: Pose }
 > = {
+  lab: {
+    position: [-1.65, 0, -0.85],
+    label: [-1.8, 0.04, -0.3],
+    rotation: 0.1,
+    approach: [...SAFE],
+    touch: [...SAFE],
+    safe: [...SAFE],
+  },
   education: {
     position: [-1.5, 0, 0.7],
     label: [-1.7, 0.03, 1.38],

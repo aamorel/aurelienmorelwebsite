@@ -3,6 +3,7 @@ import {
   lazy,
   Suspense,
   useCallback,
+  useEffect,
   useRef,
   useState,
   type ErrorInfo,
@@ -17,6 +18,8 @@ import { TRACK_DURATION } from './scene/trackRoutine'
 import ContentPanel from './ContentPanel'
 import Hobbies from './Hobbies'
 import ChessPuzzle from './ChessPuzzle'
+import RoboticsLab from './RoboticsLab'
+import { EMPTY_LAB, type LabRequest, type LabSnapshot } from './lab'
 
 const WorkbenchScene = lazy(() => import('./scene/WorkbenchScene'))
 
@@ -65,6 +68,9 @@ export default function App() {
   const [sceneReady, setSceneReady] = useState(false)
   const [armPhase, setArmPhase] = useState<ArmPhase>('idle')
   const [behaviorRequest, setBehaviorRequest] = useState<BehaviorRequest | null>(null)
+  const [labRequest, setLabRequest] = useState<LabRequest | null>(null)
+  const [labSnapshot, setLabSnapshot] = useState<LabSnapshot>(EMPTY_LAB)
+  const [labTargetRevision, setLabTargetRevision] = useState(0)
   const playing = armPhase === 'playing'
   const dancing = armPhase === 'dancing'
   const tracking = armPhase === 'tracking'
@@ -75,9 +81,32 @@ export default function App() {
   const navigation = useNavigation(
     reducedMotion || motionPaused || sceneFailed || !sceneReady || !sceneVisible,
   )
+  useEffect(() => {
+    if (
+      navigation.selected !== 'lab' ||
+      !sceneReady ||
+      sceneFailed ||
+      reducedMotion ||
+      motionPaused
+    ) {
+      setLabRequest(null)
+      setLabSnapshot({ ...EMPTY_LAB })
+    }
+  }, [navigation.selected, sceneReady, sceneFailed, reducedMotion, motionPaused])
+  useEffect(() => {
+    setLabRequest(null)
+    setLabSnapshot({ ...EMPTY_LAB })
+  }, [navigation.revision])
+  const labOpen = navigation.visible === 'lab'
+  const resetLab = () => {
+    setLabRequest(null)
+    setLabSnapshot({ ...EMPTY_LAB })
+    navigation.select('lab')
+  }
   const onFailure = useCallback(() => setSceneFailed(true), [])
   const onReady = useCallback(() => setSceneReady(true), [])
   const behaviorDisabled =
+    navigation.selected === 'lab' ||
     !sceneReady ||
     sceneFailed ||
     !sceneVisible ||
@@ -160,11 +189,11 @@ export default function App() {
           </div>
         </section>
         <div
-          className={`workbench-layout ${navigation.visible ? 'has-panel' : ''} ${hobbiesOpen ? 'has-hobbies' : ''}`}
+          className={`workbench-layout ${navigation.visible ? 'has-panel' : ''} ${hobbiesOpen && !labOpen ? 'has-hobbies' : ''} ${labOpen ? 'has-lab' : ''}`}
         >
           <Hobbies
             motionEnabled={!reducedMotion && !motionPaused && !chessOpen}
-            open={hobbiesOpen}
+            open={hobbiesOpen && !labOpen}
             onToggle={() => setHobbiesOpen(!hobbiesOpen)}
             onChess={() => setChessOpen(true)}
           />
@@ -177,25 +206,30 @@ export default function App() {
                 />
                 {sceneFailed
                   ? 'AT REST'
-                  : navigation.mode === 'reaching'
-                    ? 'ON MY WAY'
-                    : reducedMotion || motionPaused
-                      ? 'AT REST'
-                      : playing
-                        ? 'TAKING A SHOT'
-                        : dancing
-                          ? 'FEELING THE GROOVE'
-                          : tracking
-                            ? `FOLLOWING YOU · ${trackSeconds}s`
-                            : navigation.mode === 'reading'
-                              ? 'TAKE YOUR TIME'
-                              : 'QUIETLY CURIOUS'}
+                  : armPhase === 'experiment'
+                    ? 'RUNNING AN EXPERIMENT'
+                    : navigation.mode === 'reaching'
+                      ? 'ON MY WAY'
+                      : reducedMotion || motionPaused
+                        ? 'AT REST'
+                        : playing
+                          ? 'TAKING A SHOT'
+                          : dancing
+                            ? 'FEELING THE GROOVE'
+                            : tracking
+                              ? `FOLLOWING YOU · ${trackSeconds}s`
+                              : navigation.mode === 'reading'
+                                ? 'TAKE YOUR TIME'
+                                : 'QUIETLY CURIOUS'}
               </span>
             </div>
             <div className={`scene-viewport ${tracking ? 'is-tracking' : ''}`} ref={sceneRegion}>
               <SceneBoundary onFailure={onFailure}>
                 <Suspense fallback={<SceneFallback />}>
                   <WorkbenchScene
+                    labRequest={labRequest}
+                    labTargetRevision={labTargetRevision}
+                    onLabUpdate={setLabSnapshot}
                     selected={navigation.selected}
                     mode={navigation.mode}
                     revision={navigation.revision}
@@ -274,7 +308,36 @@ export default function App() {
               </div>
             </div>
           </section>
-          <ContentPanel {...navigation} select={select} />
+          {labOpen ? (
+            <RoboticsLab
+              close={() => {
+                setLabRequest(null)
+                navigation.close()
+              }}
+              request={labRequest}
+              snapshot={labSnapshot}
+              available={
+                sceneReady &&
+                !sceneFailed &&
+                sceneVisible &&
+                !reducedMotion &&
+                !motionPaused &&
+                !chessOpen
+              }
+              run={(chunk, delay) => {
+                setLabSnapshot({ ...EMPTY_LAB })
+                setLabRequest((previous) => ({
+                  chunk,
+                  delay,
+                  revision: (previous?.revision ?? 0) + 1,
+                }))
+              }}
+              moveTarget={() => setLabTargetRevision((previous) => previous + 1)}
+              stop={resetLab}
+            />
+          ) : (
+            <ContentPanel {...navigation} select={select} />
+          )}
         </div>
         <section className="contact-strip" id="contact" aria-labelledby="contact-heading">
           <div>

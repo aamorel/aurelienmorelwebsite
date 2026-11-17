@@ -7,6 +7,7 @@ import { ArrowIcon, CheckIcon } from '../Icons'
 import type { Mode } from '../useNavigation'
 import RobotArm from './RobotArm'
 import type { ArmPhase, BehaviorRequest } from './motion'
+import type { LabRequest, LabSnapshot } from '../lab'
 import { TARGETS } from './config'
 import { palette } from './palette'
 import { useSelectionAnimation, type SelectionProps } from './useSelectionAnimation'
@@ -18,6 +19,9 @@ const graphite = new MeshStandardMaterial({ color: palette.dark, roughness: 0.65
 const orange = new MeshStandardMaterial({ color: palette.clay, roughness: 0.6 })
 
 type Props = {
+  labRequest?: LabRequest | null
+  labTargetRevision?: number
+  onLabUpdate?: (snapshot: LabSnapshot) => void
   selected: Section | null
   mode: Mode
   revision: number
@@ -468,6 +472,9 @@ export default function WorkbenchScene(props: Props) {
       <directionalLight position={[4, 4, -5]} intensity={1.2} color="#f1f5e9" />
       <Desk />
       <RobotArm
+        labRequest={props.labRequest}
+        labTargetRevision={props.labTargetRevision}
+        onLabUpdate={props.onLabUpdate}
         selected={props.selected}
         mode={props.mode}
         revision={props.revision}
@@ -477,6 +484,40 @@ export default function WorkbenchScene(props: Props) {
         trackEnabled={props.trackEnabled}
         onTrackTimeChange={props.onTrackTimeChange}
       />
+      <DeskObject id="lab" props={props}>
+        <group rotation={[0, 0.1, 0]}>
+          <RoundedBox
+            args={[0.65, 0.17, 0.48]}
+            radius={0.035}
+            smoothness={3}
+            position={[0, 0.1, 0]}
+            material={paper}
+            castShadow
+            receiveShadow
+          />
+          <RoundedBox
+            args={[0.36, 0.012, 0.29]}
+            radius={0.005}
+            smoothness={2}
+            position={[-0.09, 0.192, 0]}
+            material={graphite}
+          />
+          <Line
+            points={[
+              [-0.23, 0.202, 0.02],
+              [-0.17, 0.202, 0.02],
+              [-0.11, 0.202, -0.08],
+              [-0.05, 0.202, 0.07],
+              [0.02, 0.202, -0.03],
+            ]}
+            color="#c5d5a8"
+            lineWidth={2}
+          />
+          <mesh position={[0.23, 0.21, 0.04]} material={orange} castShadow>
+            <cylinderGeometry args={[0.055, 0.055, 0.045, 20]} />
+          </mesh>
+        </group>
+      </DeskObject>
       <DeskObject id="education" props={props}>
         <Notebook
           selected={props.selected === 'education' && props.mode === 'reading'}

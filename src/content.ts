@@ -107,7 +107,7 @@ export const hobbies = [
 ] as const
 export type Hobby = (typeof hobbies)[number]['id']
 
-export type Section = 'publications' | 'education' | 'work'
+export type Section = 'publications' | 'education' | 'work' | 'lab'
 export const sections: {
   id: Section
   label: string
@@ -115,6 +115,13 @@ export const sections: {
   object: string
   description: string
 }[] = [
+  {
+    id: 'lab',
+    label: 'Robotics lab',
+    number: '04',
+    object: 'The experiment console',
+    description: 'Small experiments in robot learning and control.',
+  },
   {
     id: 'publications',
     label: 'Publications',

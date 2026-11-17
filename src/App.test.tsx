@@ -1,9 +1,12 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
+import type { LabRequest, LabSnapshot } from './lab'
 import type { ArmPhase, BehaviorRequest } from './scene/motion'
 
 type SceneControls = {
+  labRequest: LabRequest | null
+  onLabUpdate: (snapshot: LabSnapshot) => void
   behaviorRequest: BehaviorRequest | null
   trackEnabled: boolean
   onTrackTimeChange: (seconds: number) => void
@@ -217,6 +220,29 @@ describe('accessible HTML shell', () => {
     await waitFor(() =>
       expect(screen.getByRole('heading', { name: 'Research, in practice.' })).toBeTruthy(),
     )
+    expect(screen.getByTestId('scene')).toBe(canvas)
+  })
+})
+
+describe('robotics lab', () => {
+  it('runs with the existing scene, folds hobbies, and resets on pause and navigation', async () => {
+    window.history.replaceState(null, '', '/#lab')
+    render(<App />)
+    const canvas = await screen.findByTestId('scene')
+    act(() => scene.props!.onReady())
+    expect(screen.getByRole('heading', { name: 'Robotics, on the bench.' })).toBeTruthy()
+    expect((screen.getByRole('button', { name: 'Dance' }) as HTMLButtonElement).disabled).toBe(true)
+    fireEvent.click(screen.getByRole('button', { name: 'Run experiment →' }))
+    expect(scene.props!.labRequest?.chunk).toBe(6)
+    expect(scene.props!.labRequest?.delay).toBe(400)
+    fireEvent.click(screen.getByRole('button', { name: 'Pause robot motion' }))
+    expect(scene.props!.labRequest).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Resume robot motion' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Single action' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Run experiment →' }))
+    expect(scene.props!.labRequest?.chunk).toBe(1)
+    fireEvent.click(within(screen.getByRole('navigation')).getByRole('link', { name: 'Work' }))
+    expect(scene.props!.labRequest).toBeNull()
     expect(screen.getByTestId('scene')).toBe(canvas)
   })
 })

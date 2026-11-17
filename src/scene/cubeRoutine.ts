@@ -69,7 +69,7 @@ function swingPoint(
 
 // Solve the two arm links for a fingertip position and wrist direction.
 // These authored positions are checked against the joint limits in the tests.
-function gripPose(position: Point, direction = -Math.PI, gap = OPEN_GRIP): Pose {
+export function gripPose(position: Point, direction = -Math.PI, gap = OPEN_GRIP): Pose {
   const x = position[0] - ARM.base[0]
   const z = position[2] - ARM.base[2]
   const radius = Math.hypot(x, z) + GRIP_CENTER * Math.sin(direction)
@@ -86,7 +86,7 @@ function gripPose(position: Point, direction = -Math.PI, gap = OPEN_GRIP): Pose 
 
 // Same pivot order as the rendered arm. The extra half turn leaves the cube
 // upright on the bench when the gripper points straight down.
-function heldRotation(pose: Pose): Quaternion {
+export function heldRotation(pose: Pose): Quaternion {
   return new Quaternion()
     .setFromAxisAngle(Y_AXIS, pose[0])
     .multiply(new Quaternion().setFromAxisAngle(Z_AXIS, pose[1] + pose[2] + pose[3]))

@@ -13,6 +13,7 @@ type Props = {
 }
 
 const headings: Record<Section, string> = {
+  lab: 'Robotics lab',
   publications: 'Research, in practice.',
   education: 'Where it started.',
   work: 'What I bring back.',

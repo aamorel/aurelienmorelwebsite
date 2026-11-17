@@ -1,3 +1,5 @@
+import { LabRoutine } from './labRoutine'
+import type { LabRequest } from '../lab'
 import type { Section } from '../content'
 import type { Mode } from '../useNavigation'
 import { IDLE_POSES, SAFE, TARGETS, WELCOME, blendPose, type Point, type Pose } from './config'
@@ -6,7 +8,8 @@ import { DanceRoutine } from './danceRoutine'
 import { TrackRoutine } from './trackRoutine'
 import { CONFETTI_DURATION } from './confetti'
 
-export type ArmPhase = 'idle' | 'reaching' | 'returning' | 'playing' | 'dancing' | 'tracking'
+export type ArmPhase =
+  'idle' | 'reaching' | 'returning' | 'playing' | 'dancing' | 'tracking' | 'experiment'
 export type Behavior = 'cube' | 'dance' | 'track'
 export type BehaviorRequest = { kind: Behavior; revision: number }
 type Step = { to: Pose; duration: number; phase: ArmPhase }
@@ -25,7 +28,7 @@ export class ArmMotion {
   private elapsed = 0
   private idleTime = 0
   private idleIndex = 0
-  private routine: CubeRoutine | DanceRoutine | TrackRoutine | null = null
+  private routine: CubeRoutine | DanceRoutine | TrackRoutine | LabRoutine | null = null
   private playTime = 0
   private nextPlay = 0
   private lastSpot = -1
@@ -34,6 +37,20 @@ export class ArmMotion {
   constructor(random: () => number = Math.random) {
     this.random = random
     this.nextPlay = 9 + random() * 5
+  }
+
+  get labSnapshot() {
+    return this.routine instanceof LabRoutine ? this.routine.snapshot : null
+  }
+  moveLabTarget() {
+    if (this.routine instanceof LabRoutine) this.routine.moveTarget()
+  }
+  startLab(options: LabRequest) {
+    if (!this.request?.motionEnabled || this.request.selected !== 'lab') return
+    this.steps = []
+    this.routine = new LabRoutine(this.pose, options)
+    this.cube = this.routine.cube
+    this.phase = 'experiment'
   }
 
   get danceTime() {
@@ -107,7 +124,7 @@ export class ArmMotion {
       return
     }
 
-    if (request.selected && request.mode === 'reaching') {
+    if (request.selected && request.selected !== 'lab' && request.mode === 'reaching') {
       const target = TARGETS[request.selected]
       const retract: Pose = [...target.safe]
       retract[0] = this.pose[0]
@@ -151,7 +168,8 @@ export class ArmMotion {
       if (this.routine instanceof TrackRoutine && this.routine.secondsRemaining === 0) {
         this.phase = 'returning'
       }
-      if (this.routine.finished) {
+      if (this.routine instanceof LabRoutine && this.routine.finished) this.phase = 'idle'
+      if (this.routine.finished && !(this.routine instanceof LabRoutine)) {
         this.routine = null
         this.cube = null
         this.phase = 'idle'
@@ -165,7 +183,7 @@ export class ArmMotion {
 
     if (this.phase === 'idle' && this.request.mode !== 'reaching') {
       this.playTime += delta
-      if (this.playTime >= this.nextPlay) {
+      if (this.request.selected !== 'lab' && this.playTime >= this.nextPlay) {
         this.startBehavior(this.random() < 0.5 ? 'cube' : 'dance')
         return this.pose
       }

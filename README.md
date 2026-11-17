@@ -66,3 +66,12 @@ Browser checks cover desktop and 390 px layouts, scene labels and normal navigat
 Notes are intentionally omitted until there is writing to publish. The current page has `noindex` metadata and remains a local prototype. The source CV has not been copied into the publicly served assets. Publishing and a deployment destination are a separate step.
 
 Stack references: [React Three Fiber compatibility](https://r3f.docs.pmnd.rs/getting-started/introduction), [Vite setup](https://vite.dev/guide/).
+
+
+## Robotics lab
+
+The experiment console and `#lab` navigation link open a wider lesson panel beside the existing arm. The hobbies rail folds while the lab is visible. The first lesson compares single-action prediction with action chunks on a 24-action pick-and-place task, with adjustable simulated inference delay, a live prediction/execution timeline, per-mode run results, and a movable target. Ordinary spontaneous routines are suppressed in the lab; navigation and pausing clean up the experiment.
+
+`src/RoboticsLab.tsx` owns lesson presentation; `src/lab.ts` defines shared controls and telemetry; `src/scene/labRoutine.ts` runs authored joint targets through the existing motion controller. Each prediction snapshots the target and queues a full chunk. This is a blocking-inference illustration, not a learned policy or ACT reproduction. Prediction and execution horizons are equal; temporal ensembling is explained but not implemented. The lesson links to the original ACT paper. New lessons can reuse the stage and motion ownership without adding desk objects.
+
+The lab adds routine checks for inference timing, stale observations, placement behavior, joint limits, clearance above the desk, and navigation cleanup, plus a UI integration check for mode selection, pause/reset, and preservation of the scene. Browser preview could not be verified in the implementation session because the browser tool failed to attach.
